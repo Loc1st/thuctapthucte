@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cá Viên Chiên - Menu</title>
+    <link rel="stylesheet" href="css/menu.css">
+</head>
+<body>
+<header class="topbar">
+    <div>
+        <h1>Cá Viên Chiên</h1>
+        <p id="tableInfo">Đang tải thông tin bàn...</p>
+    </div>
+    <button id="cartButton" class="cart-button">
+        🛒 Giỏ hàng <span id="cartCount">0</span>
+    </button>
+</header>
+
+<main class="container">
+    <section class="hero">
+        <h2>Menu hôm nay</h2>
+        <p>Chọn món bạn muốn gọi tại bàn.</p>
+    </section>
+
+    <div id="loading" class="message">Đang tải menu...</div>
+    <div id="error" class="message error hidden"></div>
+    <section id="productList" class="product-grid"></section>
+</main>
+
+<div id="cartPanel" class="cart-panel hidden">
+    <div class="cart-header">
+        <h2>Giỏ hàng</h2>
+        <button id="closeCart">✕</button>
+    </div>
+    <div id="cartItems"></div>
+    <div class="cart-footer">
+        <strong>Tổng: <span id="cartTotal">0 đ</span></strong>
+        <button id="orderButton" class="order-button">Đặt món</button>
+    </div>
+</div>
+
+<div id="overlay" class="overlay hidden"></div>
+
+<script src="js/menu.js"></script>
+</body>
+</html>

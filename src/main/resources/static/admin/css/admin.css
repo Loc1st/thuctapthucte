@@ -1,0 +1,22 @@
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f6f8;color:#222}.topbar{background:#fff;border-bottom:1px solid #e5e5e5;padding:15px 5%;display:flex;justify-content:space-between;align-items:center}.topbar h1{margin:0 0 3px;font-size:21px}.topbar span{color:#777;font-size:13px}.topbar button,.action{border:0;border-radius:8px;padding:9px 13px;cursor:pointer;background:#222;color:#fff;font-weight:600}.container{width:min(1150px,92%);margin:auto;padding:25px 0 50px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.stats div{background:#fff;border:1px solid #eee;border-radius:12px;padding:17px}.stats span{display:block;color:#777;font-size:13px;margin-bottom:8px}.stats strong{font-size:22px}.toolbar{display:flex;justify-content:space-between;align-items:center;margin:25px 0 14px}.toolbar h2{margin:0}.toolbar select{padding:9px;border:1px solid #ddd;border-radius:8px;background:#fff}.orders{display:grid;gap:15px}.order{background:#fff;border:1px solid #e8e8e8;border-radius:13px;padding:17px}.order-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.order-title{font-weight:700;font-size:18px}.meta{color:#777;font-size:13px;margin-top:4px}.badge{display:inline-block;padding:5px 9px;border-radius:20px;font-size:12px;font-weight:700}.s0{background:#fff2cc}.s1{background:#dceeff}.s2{background:#dff5df}.s3{background:#ffdede}.items{margin:15px 0;border-top:1px solid #eee;border-bottom:1px solid #eee}.item{display:flex;justify-content:space-between;padding:10px 0}.item small{color:#777}.order-bottom{display:flex;justify-content:space-between;align-items:center;gap:15px}.total{font-size:18px;font-weight:700}.actions{display:flex;gap:8px;flex-wrap:wrap}.message{text-align:center;color:#777;padding:30px}.error{color:#b00020}@media(max-width:750px){.stats{grid-template-columns:repeat(2,1fr)}.order-bottom{align-items:flex-start;flex-direction:column}.topbar{padding:13px 4%}}
+.hidden{display:none}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.admin-link {
+    display: inline-block;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: white;
+    color: #111;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.admin-link:hover {
+    opacity: 0.85;
+}

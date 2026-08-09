@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản trị - Cá Viên Chiên</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+<header class="topbar">
+
+  <div>
+    <h1>Cá Viên Chiên</h1>
+    <span>Trang quản trị</span>
+  </div>
+
+  <div class="topbar-actions">
+
+    <a href="ban.html" class="admin-link">
+      🪑 Quản lý bàn
+    </a>
+
+    <button id="refreshBtn">
+      ↻ Làm mới
+    </button>
+
+  </div>
+
+</header>
+<main class="container">
+  <div class="stats">
+    <div><span>Đơn chờ</span><strong id="pendingCount">0</strong></div>
+    <div><span>Đang làm</span><strong id="workingCount">0</strong></div>
+    <div><span>Hoàn thành</span><strong id="doneCount">0</strong></div>
+    <div><span>Doanh thu hiển thị</span><strong id="revenue">0 đ</strong></div>
+  </div>
+  <div class="toolbar">
+    <h2>Đơn hàng</h2>
+    <select id="filter">
+      <option value="all">Tất cả</option>
+      <option value="0">Chờ xác nhận</option>
+      <option value="1">Đang làm</option>
+      <option value="2">Hoàn thành</option>
+      <option value="3">Đã hủy</option>
+    </select>
+  </div>
+  <div id="message" class="message">Đang tải...</div>
+  <section id="orders" class="orders"></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
