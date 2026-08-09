@@ -1,0 +1,246 @@
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Nhân viên - Cá Viên Chiên</title>
+
+    <link rel="stylesheet" href="/staff/css/staff.css">
+
+    <style>
+        .session-summary {
+            margin: 18px 0;
+            padding: 18px;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            background: #fff;
+        }
+
+        .session-summary.current {
+            border-color: #d1fae5;
+            background: #f0fdf4;
+        }
+
+        .session-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .session-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .session-meta {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .session-total {
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .session-note {
+            margin-top: 10px;
+            color: #166534;
+            font-size: 13px;
+        }
+
+        .history-title {
+            margin: 24px 0 12px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #374151;
+        }
+
+        .session-block {
+            margin-bottom: 22px;
+        }
+
+        .session-block > .session-label {
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: #374151;
+        }
+
+        .session-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 10px 0 18px;
+        }
+
+        .session-actions button,
+        .order-actions button {
+            border: 0;
+            border-radius: 8px;
+            padding: 9px 14px;
+            cursor: pointer;
+            font-weight: 600;
+            background: #111827;
+            color: #fff;
+        }
+
+        .session-actions button:hover,
+        .order-actions button:hover {
+            opacity: .88;
+        }
+
+        .session-actions button.pay {
+            background: #16a34a;
+        }
+
+        .session-actions button.cancel {
+            background: #dc2626;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .order-actions .doing {
+            background: #2563eb;
+        }
+
+        .order-actions .done {
+            background: #16a34a;
+        }
+
+        .order-actions .cancel {
+            background: #dc2626;
+        }
+
+        .order-actions .confirm {
+            background: #d97706;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<header class="staff-header">
+
+    <div class="staff-brand">
+        <div class="staff-logo">🍢</div>
+
+        <div>
+            <h1>Cá Viên Chiên</h1>
+            <span>Khu vực nhân viên</span>
+        </div>
+    </div>
+
+    <nav class="staff-nav">
+
+        <a href="/staff/index.html" class="active">
+            🪑 Bàn
+        </a>
+
+        <a href="/admin/ban.html">
+            📋 Đơn hàng
+        </a>
+
+        <a href="/admin/index.html">
+            ⚙️ Quản lý
+        </a>
+
+        <button id="refreshBtn">
+            ↻ Làm mới
+        </button>
+
+    </nav>
+
+</header>
+
+
+<main class="container">
+
+    <div class="page-title">
+
+        <div>
+            <h2>Quản lý bàn</h2>
+
+            <p>
+                Chọn bàn để xem đơn và món đang gọi.
+            </p>
+        </div>
+
+    </div>
+
+
+    <div id="message" class="message">
+        Đang tải danh sách bàn...
+    </div>
+
+
+    <section
+            id="tables"
+            class="table-grid"
+    ></section>
+
+
+    <section
+            id="tableDetail"
+            class="detail hidden"
+    >
+
+        <div class="detail-header">
+
+            <div>
+
+                <button
+                        id="backBtn"
+                        class="back-btn"
+                >
+                    ← Quay lại
+                </button>
+
+                <h2 id="detailTableName">
+                    Bàn
+                </h2>
+
+                <span
+                        id="detailStatus"
+                        class="status"
+                ></span>
+
+            </div>
+
+        </div>
+
+
+        <div
+                id="sessionSummary"
+                class="session-summary hidden"
+        ></div>
+
+
+        <div
+                id="sessionActions"
+                class="session-actions hidden"
+        ></div>
+
+
+        <div id="orders"></div>
+
+    </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+<script src="js/staff.js"></script>
+
+</body>
+</html>

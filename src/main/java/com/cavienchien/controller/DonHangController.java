@@ -50,4 +50,21 @@ public class DonHangController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
+
+    @PostMapping("/phien/{maPhien}/thanh-toan")
+    public void thanhToanPhien(
+            @PathVariable Integer maPhien
+    ) {
+        try {
+
+            service.thanhToanPhien(maPhien);
+
+        } catch (IllegalArgumentException e) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    e.getMessage()
+            );
+        }
+    }
 }

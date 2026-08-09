@@ -8,6 +8,7 @@ public record DonHangResponse(
         Integer maDonHang,
         Integer maBan,
         String tenBan,
+        Integer maPhien,
         BigDecimal tongTien,
         Integer trangThai,
         LocalDateTime ngayDat,
