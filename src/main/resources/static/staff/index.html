@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="vi">
 <head>
 
     <meta charset="UTF-8">
@@ -140,25 +142,25 @@
         </div>
     </div>
 
-    <nav class="staff-nav">
-
-        <a href="/staff/index.html" class="active">
+    <nav>
+        <a class="active" href="/staff/index.html">
             🪑 Bàn
         </a>
 
-        <a href="/admin/ban.html">
-            📋 Đơn hàng
+        <a href="/staff/qr-ban.html">
+            📱 QR / Menu bàn
         </a>
+    </nav>
 
-        <a href="/admin/index.html">
-            ⚙️ Quản lý
-        </a>
-
-        <button id="refreshBtn">
-            ↻ Làm mới
+    <div class="header-actions">
+        <button id="refreshBtn" class="icon-btn" title="Làm mới">
+            ↻
         </button>
 
-    </nav>
+        <button id="logoutBtn" class="logout-btn">
+            Đăng xuất
+        </button>
+    </div>
 
 </header>
 
@@ -240,7 +242,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 
-<script src="js/staff.js"></script>
+<script src="/staff/js/staff.js"></script>
 
-</body>
+<script src="/js/auth.js"></script>\n</body>
 </html>

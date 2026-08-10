@@ -7,7 +7,7 @@
 
     <title>Admin Dashboard - Cá Viên Chiên</title>
 
-    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="/admin/css/admin.css">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -16,7 +16,7 @@
 
 <header class="topbar">
 
-    <a class="brand" href="index.html">
+    <a class="brand" href="/admin/index.html">
         <span class="logo">🍢</span>
 
         <span>
@@ -26,26 +26,25 @@
     </a>
 
     <nav>
-        <a class="active" href="index.html">
+        <a class="active" href="/admin/index.html">
             📊 Tổng quan
         </a>
 
-        <a href="don-hang.html">
+        <a href="/admin/don-hang.html">
             🧾 Đơn hàng
         </a>
 
-        <a href="thuc-don.html">
+        <a href="/admin/thuc-don.html">
             🍽️ Thực đơn
         </a>
 
-        <a href="ban.html">
+        <a href="/admin/ban.html">
             🪑 Bàn
         </a>
     </nav>
 
-    <button id="refreshBtn" class="icon-btn">
-        ↻
-    </button>
+    <button id="refreshBtn" class="icon-btn" title="Làm mới">↻</button>
+    <button id="logoutBtn" class="logout-btn">Đăng xuất</button>
 
 </header>
 
@@ -305,7 +304,7 @@
 
                 </div>
 
-                <a href="thuc-don.html">
+                <a href="/admin/thuc-don.html">
                     Thực đơn →
                 </a>
 
@@ -334,7 +333,7 @@
 
             </div>
 
-            <a href="don-hang.html">
+            <a href="/admin/don-hang.html">
                 Xem tất cả →
             </a>
 
@@ -350,7 +349,7 @@
 </main>
 
 
-<script src="js/dashboard.js"></script>
+<script src="/admin/js/dashboard.js"></script>
 
-</body>
+<script src="/js/auth.js"></script>\n</body>
 </html>

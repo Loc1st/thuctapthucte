@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Cá Viên Chiên</title>
+    <link rel="stylesheet" href="/css/login.css">
+</head>
+<body>
+<main class="login-page">
+    <section class="login-card">
+        <div class="login-logo">🍢</div>
+        <p class="eyebrow">CÁ VIÊN CHIÊN</p>
+        <h1>Đăng nhập hệ thống</h1>
+        <p class="subtitle">Dành cho Chủ và Nhân viên.</p>
+
+        <form id="loginForm">
+            <label>
+                Tên đăng nhập
+                <input id="username" name="username" autocomplete="username" required>
+            </label>
+
+            <label>
+                Mật khẩu
+                <input id="password" name="password" type="password"
+                       autocomplete="current-password" required>
+            </label>
+
+            <button type="submit">Đăng nhập</button>
+            <p id="loginMessage" class="message"></p>
+        </form>
+    </section>
+</main>
+<script src="/js/login.js"></script>
+</body>
+</html>
