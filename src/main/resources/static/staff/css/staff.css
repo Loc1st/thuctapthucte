@@ -782,4 +782,195 @@ body {
         padding: 0 2px;
     }
 
+
+
+}
+
+/* =========================
+   BILL THANH TOÁN
+========================= */
+
+.payment-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(0, 0, 0, .55);
+}
+
+.payment-modal.hidden {
+    display: none;
+}
+
+.payment-bill {
+    width: 100%;
+    max-width: 430px;
+
+    background: #fff;
+    border-radius: 18px;
+
+    padding: 24px;
+
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.payment-bill-header {
+    text-align: center;
+
+    padding-bottom: 15px;
+    border-bottom: 1px dashed #ddd;
+}
+
+.payment-bill-header h2 {
+    margin: 0 0 5px;
+    font-size: 22px;
+}
+
+.payment-bill-header p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.payment-qr {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.payment-qr img {
+    width: 230px;
+    height: 230px;
+
+    max-width: 100%;
+
+    border-radius: 10px;
+}
+
+.payment-transfer {
+    background: #f5f5f5;
+    border-radius: 12px;
+
+    padding: 15px;
+
+    margin-bottom: 15px;
+}
+
+.payment-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+
+    padding: 7px 0;
+
+    font-size: 14px;
+}
+
+.payment-row span:first-child {
+    color: #666;
+}
+
+.payment-row strong {
+    text-align: right;
+}
+
+.payment-amount {
+    font-size: 20px;
+    color: #16a34a;
+}
+
+.payment-content {
+    color: #dc2626;
+}
+
+.payment-items {
+    margin: 15px 0;
+
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+}
+
+.payment-item {
+    display: flex;
+    justify-content: space-between;
+
+    padding: 9px 0;
+
+    font-size: 14px;
+}
+
+.payment-item-name {
+    max-width: 65%;
+}
+
+.payment-item-price {
+    font-weight: 600;
+}
+
+.payment-bill-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.payment-bill-actions button {
+    flex: 1;
+
+    min-height: 44px;
+
+    border: 0;
+    border-radius: 9px;
+
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.payment-cancel {
+    background: #eee;
+    color: #333;
+}
+
+.payment-confirm {
+    background: #16a34a;
+    color: white;
+}
+
+.payment-confirm:hover {
+    background: #15803d;
+}
+
+@media (max-width: 768px) {
+
+    .payment-modal {
+        padding: 12px;
+    }
+
+    .payment-bill {
+        padding: 18px;
+        border-radius: 15px;
+    }
+
+    .payment-qr img {
+        width: 200px;
+        height: 200px;
+    }
+
+    .payment-row {
+        font-size: 13px;
+    }
+
+    .payment-bill-actions {
+        flex-direction: column;
+    }
+
+    .payment-bill-actions button {
+        width: 100%;
+    }
 }

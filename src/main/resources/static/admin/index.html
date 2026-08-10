@@ -1,68 +1,356 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quản trị - Cá Viên Chiên</title>
-  <link rel="stylesheet" href="/staff/css/staff.css">
-  <link rel="stylesheet" href="/admin/css/admin.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Dashboard - Cá Viên Chiên</title>
+
+    <link rel="stylesheet" href="css/admin.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
-<header class="staff-header">
 
-  <div class="staff-brand">
-    <div class="staff-logo">🍢</div>
+<header class="topbar">
 
-    <div>
-      <h1>Cá Viên Chiên</h1>
-      <span>Khu vực nhân viên</span>
-    </div>
-  </div>
+    <a class="brand" href="index.html">
+        <span class="logo">🍢</span>
 
-  <nav class="staff-nav">
-
-    <a href="/staff/index.html">
-      🪑 Bàn
+        <span>
+            <b>Cá Viên Chiên</b>
+            <small>Quản trị hệ thống</small>
+        </span>
     </a>
 
-    <a href="/admin/ban.html">
-      📋 Đơn hàng
-    </a>
+    <nav>
+        <a class="active" href="index.html">
+            📊 Tổng quan
+        </a>
 
-    <a href="/admin/index.html" class="active">
-      ⚙️ Quản lý
-    </a>
+        <a href="don-hang.html">
+            🧾 Đơn hàng
+        </a>
 
-    <button id="refreshBtn">
-      ↻ Làm mới
+        <a href="thuc-don.html">
+            🍽️ Thực đơn
+        </a>
+
+        <a href="ban.html">
+            🪑 Bàn
+        </a>
+    </nav>
+
+    <button id="refreshBtn" class="icon-btn">
+        ↻
     </button>
-
-  </nav>
 
 </header>
 
-<main class="container">
-  <div class="stats">
-    <div><span>Đơn chờ</span><strong id="pendingCount">0</strong></div>
-    <div><span>Đang làm</span><strong id="workingCount">0</strong></div>
-    <div><span>Hoàn thành</span><strong id="doneCount">0</strong></div>
-    <div><span>Doanh thu hiển thị</span><strong id="revenue">0 đ</strong></div>
-  </div>
-  <div class="toolbar">
-    <h2>Đơn hàng</h2>
-    <select id="filter">
-      <option value="all">Tất cả</option>
-      <option value="0">Chờ xác nhận</option>
-      <option value="1">Đang làm</option>
-      <option value="2">Hoàn thành</option>
-      <option value="3">Đã hủy</option>
-    </select>
-  </div>
-  <div id="message" class="message">Đang tải...</div>
-  <section id="orders" class="orders"></section>
+
+<main class="page">
+
+    <section class="hero">
+
+        <div>
+
+            <p class="eyebrow">
+                ADMIN DASHBOARD
+            </p>
+
+            <h1>
+                Tổng quan hoạt động
+            </h1>
+
+            <p class="muted">
+                Doanh thu, đơn hàng và món bán chạy từ dữ liệu thật.
+            </p>
+
+        </div>
+
+
+        <div class="toolbar">
+
+            <select id="period">
+
+                <option value="7">
+                    7 ngày
+                </option>
+
+                <option value="30" selected>
+                    30 ngày
+                </option>
+
+                <option value="all">
+                    Toàn bộ
+                </option>
+
+            </select>
+
+            <button id="reload" class="primary">
+                ↻ Cập nhật
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <section class="kpis">
+
+        <article class="kpi">
+
+            <span class="kpi-icon">
+                💰
+            </span>
+
+            <div>
+
+                <small>
+                    Doanh thu
+                </small>
+
+                <strong id="revenue">
+                    0 đ
+                </strong>
+
+                <em>
+                    Đơn hoàn thành
+                </em>
+
+            </div>
+
+        </article>
+
+
+        <article class="kpi">
+
+            <span class="kpi-icon">
+                🧾
+            </span>
+
+            <div>
+
+                <small>
+                    Tổng đơn
+                </small>
+
+                <strong id="orderCount">
+                    0
+                </strong>
+
+                <em>
+                    Tất cả trạng thái
+                </em>
+
+            </div>
+
+        </article>
+
+
+        <article class="kpi">
+
+            <span class="kpi-icon">
+                🍟
+            </span>
+
+            <div>
+
+                <small>
+                    Món đã bán
+                </small>
+
+                <strong id="itemCount">
+                    0
+                </strong>
+
+                <em>
+                    Đơn hoàn thành
+                </em>
+
+            </div>
+
+        </article>
+
+
+        <article class="kpi">
+
+            <span class="kpi-icon">
+                📈
+            </span>
+
+            <div>
+
+                <small>
+                    Giá trị đơn TB
+                </small>
+
+                <strong id="avgOrder">
+                    0 đ
+                </strong>
+
+                <em>
+                    Đơn hoàn thành
+                </em>
+
+            </div>
+
+        </article>
+
+    </section>
+
+
+    <section class="grid two">
+
+        <article class="panel chart-panel">
+
+            <div class="panel-head">
+
+                <div>
+
+                    <h2>
+                        Doanh thu
+                    </h2>
+
+                    <span>
+                        Theo ngày
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="chart-wrap">
+
+                <canvas id="revenueChart"></canvas>
+
+            </div>
+
+        </article>
+
+
+        <article class="panel chart-panel">
+
+            <div class="panel-head">
+
+                <div>
+
+                    <h2>
+                        Trạng thái đơn
+                    </h2>
+
+                    <span>
+                        Tỷ lệ hiện tại
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="chart-wrap donut">
+
+                <canvas id="statusChart"></canvas>
+
+            </div>
+
+        </article>
+
+    </section>
+
+
+    <section class="grid two">
+
+        <article class="panel chart-panel">
+
+            <div class="panel-head">
+
+                <div>
+
+                    <h2>
+                        Khung giờ cao điểm
+                    </h2>
+
+                    <span>
+                        Đơn hoàn thành theo giờ
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="chart-wrap">
+
+                <canvas id="hourChart"></canvas>
+
+            </div>
+
+        </article>
+
+
+        <article class="panel">
+
+            <div class="panel-head">
+
+                <div>
+
+                    <h2>
+                        Top món bán chạy
+                    </h2>
+
+                    <span>
+                        Theo số lượng
+                    </span>
+
+                </div>
+
+                <a href="thuc-don.html">
+                    Thực đơn →
+                </a>
+
+            </div>
+
+            <div id="topProducts" class="ranking"></div>
+
+        </article>
+
+    </section>
+
+
+    <section class="panel">
+
+        <div class="panel-head">
+
+            <div>
+
+                <h2>
+                    Đơn hàng gần đây
+                </h2>
+
+                <span>
+                    5 đơn mới nhất
+                </span>
+
+            </div>
+
+            <a href="don-hang.html">
+                Xem tất cả →
+            </a>
+
+        </div>
+
+        <div id="recentOrders" class="recent"></div>
+
+    </section>
+
+
+    <div id="message" class="message hidden"></div>
+
 </main>
-<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-<script src="js/admin.js"></script>
+
+
+<script src="js/dashboard.js"></script>
+
 </body>
 </html>

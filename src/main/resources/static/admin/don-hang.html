@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Đơn hàng - Cá Viên Chiên</title>
+
+    <link rel="stylesheet" href="css/admin.css">
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <a class="brand" href="index.html">
+
+        <span class="logo">
+            🍢
+        </span>
+
+        <span>
+
+            <b>
+                Cá Viên Chiên
+            </b>
+
+            <small>
+                Quản trị hệ thống
+            </small>
+
+        </span>
+
+    </a>
+
+
+    <nav>
+
+        <a href="index.html">
+            📊 Tổng quan
+        </a>
+
+        <a
+                class="active"
+                href="don-hang.html"
+        >
+            🧾 Đơn hàng
+        </a>
+
+        <a href="thuc-don.html">
+            🍽️ Thực đơn
+        </a>
+
+        <a href="ban.html">
+            🪑 Bàn
+        </a>
+
+    </nav>
+
+
+    <button
+            id="refreshBtn"
+            class="icon-btn"
+    >
+        ↻
+    </button>
+
+</header>
+
+
+<main class="page">
+
+    <section class="hero compact">
+
+        <div>
+
+            <p class="eyebrow">
+                ORDER MANAGEMENT
+            </p>
+
+            <h1>
+                Đơn hàng
+            </h1>
+
+            <p class="muted">
+                Theo dõi và xử lý đơn theo trạng thái.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <section class="kpis mini">
+
+        <article class="kpi">
+
+            <div>
+
+                <small>
+                    Chờ xác nhận
+                </small>
+
+                <strong id="pending">
+                    0
+                </strong>
+
+            </div>
+
+        </article>
+
+
+        <article class="kpi">
+
+            <div>
+
+                <small>
+                    Đang làm
+                </small>
+
+                <strong id="doing">
+                    0
+                </strong>
+
+            </div>
+
+        </article>
+
+
+        <article class="kpi">
+
+            <div>
+
+                <small>
+                    Hoàn thành
+                </small>
+
+                <strong id="done">
+                    0
+                </strong>
+
+            </div>
+
+        </article>
+
+
+        <article class="kpi">
+
+            <div>
+
+                <small>
+                    Đã hủy
+                </small>
+
+                <strong id="cancelled">
+                    0
+                </strong>
+
+            </div>
+
+        </article>
+
+    </section>
+
+
+    <section class="panel">
+
+        <div class="filters">
+
+            <input
+                    id="search"
+                    type="text"
+                    placeholder="Tìm mã đơn, bàn, món..."
+            >
+
+
+            <select id="filter">
+
+                <option value="all">
+                    Tất cả
+                </option>
+
+                <option value="0">
+                    Chờ xác nhận
+                </option>
+
+                <option value="1">
+                    Đang làm
+                </option>
+
+                <option value="2">
+                    Hoàn thành
+                </option>
+
+                <option value="3">
+                    Đã hủy
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div
+                id="message"
+                class="message"
+        >
+            Đang tải...
+        </div>
+
+
+        <div
+                id="orders"
+                class="orders"
+        ></div>
+
+    </section>
+
+</main>
+
+
+<script src="js/orders.js"></script>
+
+</body>
+</html>

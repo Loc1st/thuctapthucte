@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Thực đơn - Cá Viên Chiên</title>
+
+    <link rel="stylesheet" href="css/admin.css">
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <a class="brand" href="index.html">
+
+        <span class="logo">
+            🍢
+        </span>
+
+        <span>
+
+            <b>
+                Cá Viên Chiên
+            </b>
+
+            <small>
+                Quản trị hệ thống
+            </small>
+
+        </span>
+
+    </a>
+
+
+    <nav>
+
+        <a href="index.html">
+            📊 Tổng quan
+        </a>
+
+        <a href="don-hang.html">
+            🧾 Đơn hàng
+        </a>
+
+        <a
+                class="active"
+                href="thuc-don.html"
+        >
+            🍽️ Thực đơn
+        </a>
+
+        <a href="ban.html">
+            🪑 Bàn
+        </a>
+
+    </nav>
+
+
+    <button
+            id="refreshBtn"
+            class="icon-btn"
+    >
+        ↻
+    </button>
+
+</header>
+
+
+<main class="page">
+
+    <section class="hero compact">
+
+        <div>
+
+            <p class="eyebrow">
+                MENU
+            </p>
+
+            <h1>
+                Thực đơn
+            </h1>
+
+            <p class="muted">
+                Danh sách món ăn đang được quản lý.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <section class="panel">
+
+        <div class="filters">
+
+            <input
+                    id="search"
+                    type="text"
+                    placeholder="Tìm tên món..."
+            >
+
+            <span
+                    id="count"
+                    class="muted"
+            ></span>
+
+        </div>
+
+
+        <div
+                id="message"
+                class="message"
+        >
+            Đang tải...
+        </div>
+
+
+        <div
+                id="products"
+                class="product-grid"
+        ></div>
+
+    </section>
+
+
+</main>
+
+
+<script src="js/menu.js"></script>
+
+</body>
+</html>

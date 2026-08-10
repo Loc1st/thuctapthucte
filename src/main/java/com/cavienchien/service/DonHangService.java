@@ -418,37 +418,140 @@ public class DonHangService {
                                 )
                         );
 
-        // =========================
-        // CHỈ ĐỔI TRẠNG THÁI ĐƠN
-        // =========================
-
+        // Đổi trạng thái đơn
         donHang.setTrangThai(trangThai);
-
         donHangRepository.save(donHang);
 
-        // =========================
-        // REALTIME TRẠNG THÁI ĐƠN
-        // =========================
+        /*
+         * =====================================================
+         * NẾU HỦY ĐƠN
+         * =====================================================
+         *
+         * Nếu tất cả đơn trong phiên đều đã bị hủy
+         * thì không còn khách sử dụng bàn nữa.
+         *
+         * => Đóng phiên
+         * => Trả bàn về Trống
+         * => Không cho thanh toán phiên
+         */
+        if (trangThai == 3) {
 
+            Integer maPhien =
+                    donHang.getMaPhien();
+
+            if (maPhien != null) {
+
+                List<DonHang> ordersInSession =
+                        donHangRepository.findAll()
+                                .stream()
+                                .filter(order ->
+                                        maPhien.equals(
+                                                order.getMaPhien()
+                                        )
+                                )
+                                .toList();
+
+                boolean allCancelled =
+                        !ordersInSession.isEmpty()
+                                && ordersInSession.stream()
+                                .allMatch(order ->
+                                        Integer.valueOf(3)
+                                                .equals(
+                                                        order.getTrangThai()
+                                                )
+                                );
+
+                if (allCancelled) {
+
+                    PhienBan phienBan =
+                            phienBanRepository
+                                    .findById(maPhien)
+                                    .orElse(null);
+
+                    if (phienBan != null
+                            && Integer.valueOf(1)
+                            .equals(
+                                    phienBan.getTrangThai()
+                            )) {
+
+                        // Đóng phiên
+                        phienBan.setTrangThai(0);
+                        phienBan.setThoiGianDong(
+                                LocalDateTime.now()
+                        );
+
+                        phienBanRepository.save(phienBan);
+
+                        // Trả bàn
+                        Ban ban =
+                                phienBan.getBan();
+
+                        if (ban != null) {
+
+                            ban.setTrangThai(0);
+
+                            banRepository.save(ban);
+
+                            // WebSocket: bàn trống
+                            Map<String, Object>
+                                    tableNotification =
+                                    new HashMap<>();
+
+                            tableNotification.put(
+                                    "maBan",
+                                    ban.getMaBan()
+                            );
+
+                            tableNotification.put(
+                                    "tenBan",
+                                    ban.getTenBan()
+                            );
+
+                            tableNotification.put(
+                                    "trangThai",
+                                    0
+                            );
+
+                            messagingTemplate.convertAndSend(
+                                    "/topic/tables",
+                                    tableNotification
+                            );
+                        }
+
+                        // WebSocket: phiên đã đóng
+                        Map<String, Object>
+                                sessionNotification =
+                                new HashMap<>();
+
+                        sessionNotification.put(
+                                "maPhien",
+                                maPhien
+                        );
+
+                        sessionNotification.put(
+                                "trangThai",
+                                0
+                        );
+
+                        sessionNotification.put(
+                                "thoiGianDong",
+                                phienBan.getThoiGianDong()
+                        );
+
+                        messagingTemplate.convertAndSend(
+                                "/topic/session-status",
+                                sessionNotification
+                        );
+                    }
+                }
+            }
+        }
+
+        // WebSocket trạng thái đơn
         messagingTemplate.convertAndSend(
                 "/topic/order-status",
                 toResponse(donHang)
         );
-
-        /*
-         * QUAN TRỌNG:
-         *
-         * Không được đóng phiên ở đây.
-         *
-         * Đơn hoàn thành  -> phiên vẫn mở
-         * Đơn bị hủy      -> phiên vẫn mở
-         *
-         * Khách vẫn có thể gọi thêm món.
-         *
-         * Chỉ khi khách thanh toán:
-         *      PhienBan.trangThai = 0
-         *      Ban.trangThai = 0
-         */
 
         return toResponse(donHang);
     }

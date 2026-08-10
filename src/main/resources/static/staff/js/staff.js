@@ -5,6 +5,16 @@ let paidSessions = new Set();
 const BAN_API = '/api/ban';
 const ORDER_API = '/api/don-hang';
 
+// =========================
+// THÔNG TIN NHẬN CHUYỂN KHOẢN
+// =========================
+
+const PAYMENT_CONFIG = {
+    bankId: 'TPB',
+    accountNo: '00005606706',
+    accountName: 'NGUYEN DUY LOC'
+};
+
 const STATUS = {
     WAITING: 0,
     DOING: 1,
@@ -152,11 +162,21 @@ function renderOrders(maBan) {
 
         sessionSummary.classList.add('hidden');
 
+        const sessionActions =
+            document.getElementById(
+                'sessionActions'
+            );
+
+        if (sessionActions) {
+            sessionActions.classList.add('hidden');
+            sessionActions.innerHTML = '';
+        }
+
         root.innerHTML = `
-            <div class="message">
-                Bàn này chưa có đơn hàng.
-            </div>
-        `;
+        <div class="message">
+            Bàn này chưa có đơn hàng.
+        </div>
+    `;
 
         return;
     }
@@ -217,11 +237,16 @@ function renderOrders(maBan) {
             );
 
     const currentTotal =
-        currentOrders.reduce(
-            (sum, order) =>
-                sum + Number(order.tongTien || 0),
-            0
-        );
+        currentOrders
+            .filter(
+                order =>
+                    Number(order.trangThai) === STATUS.DONE
+            )
+            .reduce(
+                (sum, order) =>
+                    sum + Number(order.tongTien || 0),
+                0
+            );
 
     const firstCurrentOrder =
         currentOrders
@@ -596,11 +621,24 @@ function renderSessionActions(
     const hasUnfinished =
         currentOrders.some(
             order =>
-                Number(order.trangThai) !==
-                STATUS.DONE &&
-                Number(order.trangThai) !==
-                STATUS.CANCELLED
+                Number(order.trangThai) !== STATUS.DONE &&
+                Number(order.trangThai) !== STATUS.CANCELLED
         );
+
+    const hasCompleted =
+        currentOrders.some(
+            order =>
+                Number(order.trangThai) === STATUS.DONE
+        );
+
+// Không có đơn hoàn thành => không có tiền để thanh toán
+    if (!hasCompleted) {
+
+        root.classList.add('hidden');
+        root.innerHTML = '';
+
+        return;
+    }
 
     const alreadyPaid =
         paidSessions.has(
@@ -671,45 +709,42 @@ async function updateOrderStatus(
 ) {
 
     const labels = {
-
-        [STATUS.DOING]:
-            'bắt đầu làm',
-
-        [STATUS.DONE]:
-            'hoàn thành',
-
-        [STATUS.CANCELLED]:
-            'hủy'
-
+        [STATUS.DOING]: 'bắt đầu làm',
+        [STATUS.DONE]: 'hoàn thành',
+        [STATUS.CANCELLED]: 'hủy'
     };
 
     const action =
-        labels[trangThai] ||
-        'cập nhật';
+        labels[trangThai] || 'cập nhật';
 
-    if (
-        trangThai === STATUS.CANCELLED
-    ) {
 
-        if (
-            !confirm(
-                `Bạn có chắc muốn hủy đơn #${maDonHang}?`
-            )
-        ) {
+    // ==============================
+    // XÁC NHẬN HỦY
+    // ==============================
+
+    if (trangThai === STATUS.CANCELLED) {
+
+        if (!confirm(
+            `Bạn có chắc muốn hủy đơn #${maDonHang}?`
+        )) {
             return;
         }
-
     }
+
 
     try {
 
-        const response =
-            await fetch(
-                `${ORDER_API}/${maDonHang}/trang-thai?trangThai=${trangThai}`,
-                {
-                    method: 'PATCH'
-                }
-            );
+        // ==============================
+        // GỌI BACKEND
+        // ==============================
+
+        const response = await fetch(
+            `${ORDER_API}/${maDonHang}/trang-thai?trangThai=${trangThai}`,
+            {
+                method: 'PATCH'
+            }
+        );
+
 
         if (!response.ok) {
 
@@ -722,19 +757,177 @@ async function updateOrderStatus(
             );
         }
 
+
+        // ==================================================
+        // LẤY THÔNG TIN ĐƠN VỪA THAY ĐỔI
+        // ==================================================
+
+        const changedOrder =
+            orders.find(
+                order =>
+                    Number(order.maDonHang) ===
+                    Number(maDonHang)
+            );
+
+
+        // ==================================================
+        // HỦY ĐƠN
+        // ==================================================
+
+        if (
+            trangThai === STATUS.CANCELLED &&
+            changedOrder
+        ) {
+
+            const maBan =
+                Number(changedOrder.maBan);
+
+            const maPhien =
+                changedOrder.maPhien != null
+                    ? Number(changedOrder.maPhien)
+                    : null;
+
+
+            // ==============================================
+            // LOAD DATA MỚI NHẤT TỪ BACKEND
+            // ==============================================
+
+            await loadData();
+
+
+            // ==============================================
+            // TÌM LẠI BÀN
+            // ==============================================
+
+            const table =
+                tables.find(
+                    t =>
+                        Number(t.maBan) ===
+                        maBan
+                );
+
+
+            if (!table) {
+                return;
+            }
+
+
+            // ==============================================
+            // CHỈ KIỂM TRA ĐƠN TRONG PHIÊN HIỆN TẠI
+            //
+            // KHÔNG kiểm tra đơn cũ của những phiên trước.
+            // ==============================================
+
+            const sessionOrders =
+                orders.filter(order =>
+                    Number(order.maBan) === maBan &&
+                    (
+                        maPhien == null ||
+                        Number(order.maPhien) === maPhien
+                    )
+                );
+
+
+            // ==============================================
+            // CÒN ĐƠN CHƯA HỦY?
+            // ==============================================
+
+            const hasActiveOrder =
+                sessionOrders.some(order => {
+
+                    const status =
+                        Number(order.trangThai);
+
+                    return (
+                        status !== STATUS.CANCELLED
+                    );
+                });
+
+
+            // ==============================================
+            // KHÔNG CÒN ĐƠN HOẠT ĐỘNG
+            // => BÀN TRỐNG
+            // => XÓA NÚT THANH TOÁN
+            // ==============================================
+
+            if (!hasActiveOrder) {
+
+                // Cập nhật trạng thái bàn trên giao diện
+                table.trangThai = 0;
+
+
+                // Trạng thái
+                const status =
+                    document.getElementById(
+                        'detailStatus'
+                    );
+
+                if (status) {
+
+                    status.textContent =
+                        '🟢 Trống';
+
+                    status.className =
+                        'status empty';
+                }
+
+
+                // Xóa nút thanh toán
+                const sessionActions =
+                    document.getElementById(
+                        'sessionActions'
+                    );
+
+                if (sessionActions) {
+
+                    sessionActions.innerHTML = '';
+
+                    sessionActions.classList.add(
+                        'hidden'
+                    );
+                }
+
+
+                // Render lại danh sách đơn
+                renderOrders(maBan);
+
+
+                // Render lại danh sách bàn
+                renderTables();
+
+
+                return;
+            }
+
+
+            // ==============================================
+            // VẪN CÒN ĐƠN TRONG PHIÊN
+            // => BÀN VẪN CÓ KHÁCH
+            // ==============================================
+
+            renderOrders(maBan);
+
+            renderTables();
+
+            return;
+        }
+
+
+        // ==================================================
+        // DOING / DONE
+        // ==================================================
+
         await loadData();
 
-        /*
-         * Nếu đang ở màn chi tiết bàn,
-         * mở lại bàn hiện tại.
-         */
 
         const detail =
             document.getElementById(
                 'tableDetail'
             );
 
+
         if (
+            detail &&
             !detail.classList.contains('hidden')
         ) {
 
@@ -743,21 +936,31 @@ async function updateOrderStatus(
                     'detailTableName'
                 ).textContent;
 
+
             const table =
                 tables.find(
-                    t => t.tenBan === title
+                    t =>
+                        t.tenBan === title
                 );
 
-            if (table) {
-                renderOrders(table.maBan);
-            }
 
+            if (table) {
+
+                renderOrders(
+                    table.maBan
+                );
+            }
         }
+
 
     } catch (error) {
 
-        alert(error.message);
+        console.error(
+            'Lỗi cập nhật trạng thái:',
+            error
+        );
 
+        alert(error.message);
     }
 }
 
@@ -765,99 +968,353 @@ async function paySession(maPhien) {
 
     maPhien = Number(maPhien);
 
+    // Lấy đúng các đơn thuộc phiên
     const currentSessionOrders = orders.filter(
-        order =>
-            Number(order.maPhien) === maPhien
+        order => Number(order.maPhien) === maPhien
     );
 
-    const unfinished = currentSessionOrders.some(
-        order =>
-            Number(order.trangThai) !== STATUS.DONE &&
-            Number(order.trangThai) !== STATUS.CANCELLED
-    );
+    if (!currentSessionOrders.length) {
+        alert(`Không tìm thấy đơn hàng của phiên #${maPhien}.`);
+        return;
+    }
+
+    // =====================================================
+    // 1. Nếu còn đơn đang chờ / đang làm -> KHÔNG thanh toán
+    // =====================================================
+
+    const unfinished = currentSessionOrders.some(order => {
+
+        const status = Number(order.trangThai);
+
+        return (
+            status !== STATUS.DONE &&
+            status !== STATUS.CANCELLED
+        );
+
+    });
 
     if (unfinished) {
+
         alert(
             'Chưa thể thanh toán: vẫn còn đơn chưa hoàn thành hoặc chưa hủy.'
         );
+
         return;
     }
 
-    if (!confirm(
-        `Xác nhận thanh toán phiên #${maPhien}?`
-    )) {
+
+    // =====================================================
+    // 2. CHỈ lấy đơn HOÀN THÀNH
+    //    Đơn ĐÃ HỦY tuyệt đối không tính tiền
+    // =====================================================
+
+    const payableOrders =
+        currentSessionOrders.filter(order => {
+
+            return Number(order.trangThai) === STATUS.DONE;
+
+        });
+
+
+    // =====================================================
+    // 3. Nếu tất cả đơn đều ĐÃ HỦY
+    // =====================================================
+
+    if (payableOrders.length === 0) {
+
+        alert(
+            `Phiên #${maPhien} không có đơn hoàn thành để thanh toán.`
+        );
+
         return;
     }
 
-    const button = document.querySelector(
-        `[data-payment-session="${maPhien}"]`
+
+    // =====================================================
+    // 4. Tính tiền CHỈ từ đơn hoàn thành
+    // =====================================================
+
+    const total =
+        payableOrders.reduce(
+            (sum, order) => {
+
+                return sum + Number(order.tongTien || 0);
+
+            },
+            0
+        );
+
+
+    if (total <= 0) {
+
+        alert(
+            `Phiên #${maPhien} không có số tiền cần thanh toán.`
+        );
+
+        return;
+    }
+
+
+    // =====================================================
+    // 5. Mở bill chuyển khoản
+    // =====================================================
+
+    showPaymentBill(
+        maPhien,
+        payableOrders,
+        total
     );
+}
 
-    if (button) {
-        button.disabled = true;
-        button.textContent = 'Đang thanh toán...';
-        button.style.opacity = '0.5';
-        button.style.cursor = 'not-allowed';
+function showPaymentBill(
+    maPhien,
+    sessionOrders,
+    total
+) {
+
+    let modal =
+        document.getElementById(
+            'paymentModal'
+        );
+
+    if (!modal) {
+
+        modal =
+            document.createElement('div');
+
+        modal.id = 'paymentModal';
+
+        modal.className =
+            'payment-modal hidden';
+
+        document.body.appendChild(modal);
     }
 
-    try {
+    const transferContent =
+        `CAVIENCHIEN PHIEN ${maPhien}`;
 
-        const response = await fetch(
-            `${ORDER_API}/phien/${maPhien}/thanh-toan`,
-            {
-                method: 'POST'
-            }
+    const qrUrl =
+        `https://img.vietqr.io/image/${PAYMENT_CONFIG.bankId}-${PAYMENT_CONFIG.accountNo}-compact2.png` +
+        `?amount=${total}` +
+        `&addInfo=${encodeURIComponent(`CAVIENCHIEN PHIEN ${maPhien}`)}` +
+        `&accountName=${encodeURIComponent(PAYMENT_CONFIG.accountName)}`;
+
+    const items = [];
+
+    sessionOrders.forEach(order => {
+
+        (order.items || []).forEach(item => {
+
+            items.push(`
+                <div class="payment-item">
+
+                    <div class="payment-item-name">
+                        ${escapeHtml(
+                item.tenSanPham
+            )}
+
+                        × ${item.soLuong}
+                    </div>
+
+                    <div class="payment-item-price">
+                        ${money(item.tongTien)}
+                    </div>
+
+                </div>
+            `);
+
+        });
+
+    });
+
+    modal.innerHTML = `
+
+        <div
+            class="payment-bill"
+            onclick="event.stopPropagation()"
+        >
+
+            <div class="payment-bill-header">
+
+                <h2>
+                    🧾 HÓA ĐƠN THANH TOÁN
+                </h2>
+
+                <p>
+                    Cá Viên Chiên
+                </p>
+
+                <p>
+                    Phiên #${maPhien}
+                </p>
+
+            </div>
+
+
+            <div class="payment-items">
+
+                ${items.join('')}
+
+            </div>
+
+
+            <div class="payment-transfer">
+
+                <div class="payment-row">
+
+                    <span>Ngân hàng</span>
+
+                    <strong>
+                        ${escapeHtml(
+        PAYMENT_CONFIG.bankId
+    )}
+                    </strong>
+
+                </div>
+
+
+                <div class="payment-row">
+
+                    <span>Số tài khoản</span>
+
+                    <strong>
+                        ${escapeHtml(
+        PAYMENT_CONFIG.accountNo
+    )}
+                    </strong>
+
+                </div>
+
+
+                <div class="payment-row">
+
+                    <span>Chủ tài khoản</span>
+
+                    <strong>
+                        ${escapeHtml(
+        PAYMENT_CONFIG.accountName
+    )}
+                    </strong>
+
+                </div>
+
+
+                <div class="payment-row">
+
+                    <span>Nội dung</span>
+
+                    <strong class="payment-content">
+                        ${escapeHtml(
+        transferContent
+    )}
+                    </strong>
+
+                </div>
+
+
+                <div class="payment-row">
+
+                    <span>Tổng tiền</span>
+
+                    <strong class="payment-amount">
+                        ${money(total)}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="payment-qr">
+
+                <img
+                    src="${qrUrl}"
+                    alt="QR thanh toán"
+                >
+
+                <p>
+                    Quét mã QR để chuyển khoản
+                </p>
+
+            </div>
+
+
+            <div class="payment-bill-actions">
+
+                <button
+                    class="payment-cancel"
+                    onclick="closePaymentBill()"
+                >
+                    Đóng
+                </button>
+
+
+                <button
+                    class="payment-confirm"
+                    onclick="
+                        confirmPaymentReceived(
+                            ${maPhien}
+                        )
+                    "
+                >
+                    ✓ Đã nhận tiền
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+
+    modal.classList.remove('hidden');
+}
+
+function closePaymentBill() {
+
+    const modal =
+        document.getElementById(
+            'paymentModal'
         );
 
-        if (!response.ok) {
-            const text = await response.text();
+    if (!modal) return;
 
-            throw new Error(
-                text || 'Không thể thanh toán phiên.'
-            );
-        }
+    modal.classList.add('hidden');
+}
 
-        /*
-         * THANH TOÁN THÀNH CÔNG
-         *
-         * Backend đã:
-         * - đóng phiên
-         * - chuyển bàn về Trống
-         * - cập nhật dữ liệu
-         * - gửi WebSocket
-         */
+function refreshCurrentTable() {
 
-        // Đánh dấu phiên đã thanh toán
-        paidSessions.add(maPhien);
+    const detail =
+        document.getElementById('tableDetail');
 
-        // Tải lại dữ liệu bàn + đơn
-        await loadData();
+    if (!detail || detail.classList.contains('hidden')) {
+        return;
+    }
 
-        // Lấy lại tên bàn đang mở
-        const title =
-            document.getElementById(
-                'detailTableName'
-            ).textContent;
+    const title =
+        document.getElementById(
+            'detailTableName'
+        )?.textContent?.trim();
 
-        // Tìm bàn sau khi backend đã cập nhật
-        const table = tables.find(
-            t => t.tenBan === title
+    if (!title) return;
+
+    const table =
+        tables.find(
+            t => String(t.tenBan).trim() === title
         );
 
-        if (!table) {
-            return;
-        }
+    if (!table) return;
 
-        /*
-         * Cập nhật trạng thái trên màn hình
-         */
-        const status =
-            document.getElementById(
-                'detailStatus'
-            );
+    // =========================
+    // CẬP NHẬT TRẠNG THÁI BÀN
+    // =========================
 
-        const isBusy =
-            Number(table.trangThai) === 1;
+    const status =
+        document.getElementById('detailStatus');
+
+    const isBusy =
+        Number(table.trangThai) === 1;
+
+    if (status) {
 
         status.textContent =
             isBusy
@@ -866,40 +1323,127 @@ async function paySession(maPhien) {
 
         status.className =
             'status ' +
-            (isBusy ? 'busy' : 'empty');
+            (isBusy
+                ? 'busy'
+                : 'empty');
+    }
 
-        /*
-         * Render lại chi tiết bàn.
-         *
-         * Nếu bàn đã Trống:
-         * - không còn "Phiên hiện tại"
-         * - không còn nút thanh toán
-         * - không còn đơn trong phiên hiện tại
-         * - bàn hiển thị 🟢 Trống
-         */
-        renderOrders(table.maBan);
+    // =========================
+    // RENDER LẠI ĐƠN
+    // =========================
 
-        // Render lại danh sách bàn bên ngoài
-        renderTables();
+    renderOrders(
+        Number(table.maBan)
+    );
+}
+
+async function confirmPaymentReceived(
+    maPhien
+) {
+
+    maPhien = Number(maPhien);
+
+    const confirmResult =
+        confirm(
+            `Xác nhận đã nhận đủ tiền cho phiên #${maPhien}?`
+        );
+
+    if (!confirmResult) {
+        return;
+    }
+
+    const modal =
+        document.getElementById(
+            'paymentModal'
+        );
+
+    const confirmButton =
+        modal?.querySelector(
+            '.payment-confirm'
+        );
+
+    if (confirmButton) {
+
+        confirmButton.disabled = true;
+
+        confirmButton.textContent =
+            'Đang xác nhận...';
+
+        confirmButton.style.opacity =
+            '0.6';
+
+        confirmButton.style.cursor =
+            'not-allowed';
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                `${ORDER_API}/phien/${maPhien}/thanh-toan`,
+                {
+                    method: 'POST'
+                }
+            );
+
+        if (!response.ok) {
+
+            const text =
+                await response.text();
+
+            throw new Error(
+                text ||
+                'Không thể xác nhận thanh toán.'
+            );
+        }
+
+
+        // =========================
+        // THANH TOÁN THÀNH CÔNG
+        // =========================
+
+        paidSessions.add(maPhien);
+
+        closePaymentBill();
+
+        alert(
+            `Đã thanh toán phiên #${maPhien}.`
+        );
+
+        // Backend đã:
+        // - đóng phiên
+        // - trả bàn về Trống
+        // - gửi WebSocket
+        await loadData();
+
+        // Cập nhật lại màn hình bàn hiện tại
+        if (
+            typeof refreshCurrentTable ===
+            'function'
+        ) {
+            refreshCurrentTable();
+        }
 
     } catch (error) {
 
-        console.error(
-            'Lỗi thanh toán:',
-            error
-        );
+        if (confirmButton) {
 
-        if (button) {
-            button.disabled = false;
+            confirmButton.disabled =
+                false;
 
-            button.textContent =
-                `💵 Thanh toán phiên #${maPhien}`;
+            confirmButton.textContent =
+                '✓ Đã nhận tiền';
 
-            button.style.opacity = '';
-            button.style.cursor = '';
+            confirmButton.style.opacity =
+                '';
+
+            confirmButton.style.cursor =
+                '';
         }
 
-        alert(error.message);
+        alert(
+            error.message
+        );
     }
 }
 
