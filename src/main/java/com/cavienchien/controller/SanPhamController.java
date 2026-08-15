@@ -1,7 +1,10 @@
 package com.cavienchien.controller;
 
+import com.cavienchien.entity.DanhMuc;
 import com.cavienchien.entity.SanPham;
+import com.cavienchien.repository.DanhMucRepository;
 import com.cavienchien.repository.SanPhamRepository;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,18 +26,26 @@ import java.util.UUID;
 public class SanPhamController {
 
     private final SanPhamRepository repository;
+    private final DanhMucRepository danhMucRepository;
 
     /*
-     * Thư mục lưu ảnh upload bên ngoài classpath
+     * Thư mục lưu ảnh upload:
+     *
+     * project/
+     * └── uploads/
+     *     └── images/
      */
     private final Path imageDirectory =
-            Paths.get(
-                    "uploads",
-                    "images"
-            ).toAbsolutePath().normalize();
+            Paths.get("uploads", "images")
+                    .toAbsolutePath()
+                    .normalize();
 
-    public SanPhamController(SanPhamRepository repository) {
+    public SanPhamController(
+            SanPhamRepository repository,
+            DanhMucRepository danhMucRepository
+    ) {
         this.repository = repository;
+        this.danhMucRepository = danhMucRepository;
     }
 
     // =========================================================
@@ -67,20 +78,32 @@ public class SanPhamController {
 
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<?> create(
-            @RequestParam("tensanpham") String tenSanPham,
-            @RequestParam("giaban") BigDecimal giaBan,
+
+            @RequestParam("tensanpham")
+            String tenSanPham,
+
+            @RequestParam("giaban")
+            BigDecimal giaBan,
+
             @RequestParam(
                     value = "mota",
                     required = false
-            ) String moTa,
+            )
+            String moTa,
+
+            @RequestParam("madanhmuc")
+            Integer maDanhMuc,
+
             @RequestPart(
                     value = "imageFile",
                     required = false
-            ) MultipartFile imageFile
+            )
+            MultipartFile imageFile
+
     ) {
 
         // -------------------------
-        // Validate
+        // Validate tên
         // -------------------------
 
         if (tenSanPham == null ||
@@ -91,6 +114,10 @@ public class SanPhamController {
                     .body("Tên món không được để trống.");
         }
 
+        // -------------------------
+        // Validate giá
+        // -------------------------
+
         if (giaBan == null ||
                 giaBan.signum() < 0) {
 
@@ -99,10 +126,41 @@ public class SanPhamController {
                     .body("Giá bán không hợp lệ.");
         }
 
+        // -------------------------
+        // Validate danh mục
+        // -------------------------
+
+        if (maDanhMuc == null) {
+
+            return ResponseEntity
+                    .badRequest()
+                    .body("Vui lòng chọn danh mục.");
+        }
+
+        DanhMuc danhMuc =
+                danhMucRepository
+                        .findById(maDanhMuc)
+                        .orElse(null);
+
+        if (danhMuc == null) {
+
+            return ResponseEntity
+                    .badRequest()
+                    .body("Danh mục không tồn tại.");
+        }
+
         try {
+
+            // -------------------------
+            // Lưu ảnh
+            // -------------------------
 
             String imagePath =
                     saveImage(imageFile);
+
+            // -------------------------
+            // Tạo sản phẩm
+            // -------------------------
 
             SanPham product =
                     new SanPham();
@@ -128,20 +186,29 @@ public class SanPhamController {
             );
 
             /*
-             * Không quản lý số lượng
-             * và danh mục.
+             * Hiện tại dự án chưa quản lý tồn kho.
              */
             product.setSoLuong(null);
-            product.setDanhMuc(null);
+
+            /*
+             * Gán danh mục.
+             */
+            product.setDanhMuc(
+                    danhMuc
+            );
 
             return ResponseEntity
                     .status(HttpStatus.CREATED)
-                    .body(repository.save(product));
+                    .body(
+                            repository.save(product)
+                    );
 
         } catch (IOException e) {
 
             return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .status(
+                            HttpStatus.INTERNAL_SERVER_ERROR
+                    )
                     .body(
                             "Không thể lưu hình ảnh: "
                                     + e.getMessage()
@@ -158,6 +225,7 @@ public class SanPhamController {
             consumes = "multipart/form-data"
     )
     public ResponseEntity<?> update(
+
             @PathVariable String id,
 
             @RequestParam("tensanpham")
@@ -172,15 +240,19 @@ public class SanPhamController {
             )
             String moTa,
 
+            @RequestParam("madanhmuc")
+            Integer maDanhMuc,
+
             @RequestPart(
                     value = "imageFile",
                     required = false
             )
             MultipartFile imageFile
+
     ) {
 
         // -------------------------
-        // Validate
+        // Validate tên
         // -------------------------
 
         if (tenSanPham == null ||
@@ -191,6 +263,10 @@ public class SanPhamController {
                     .body("Tên món không được để trống.");
         }
 
+        // -------------------------
+        // Validate giá
+        // -------------------------
+
         if (giaBan == null ||
                 giaBan.signum() < 0) {
 
@@ -199,7 +275,35 @@ public class SanPhamController {
                     .body("Giá bán không hợp lệ.");
         }
 
+        // -------------------------
+        // Validate danh mục
+        // -------------------------
+
+        if (maDanhMuc == null) {
+
+            return ResponseEntity
+                    .badRequest()
+                    .body("Vui lòng chọn danh mục.");
+        }
+
+        DanhMuc danhMuc =
+                danhMucRepository
+                        .findById(maDanhMuc)
+                        .orElse(null);
+
+        if (danhMuc == null) {
+
+            return ResponseEntity
+                    .badRequest()
+                    .body("Danh mục không tồn tại.");
+        }
+
+        // -------------------------
+        // Tìm sản phẩm
+        // -------------------------
+
         return repository.findById(id)
+
                 .map(product -> {
 
                     try {
@@ -217,8 +321,15 @@ public class SanPhamController {
                         );
 
                         /*
+                         * Cập nhật danh mục.
+                         */
+                        product.setDanhMuc(
+                                danhMuc
+                        );
+
+                        /*
                          * Nếu chọn ảnh mới:
-                         * lưu ảnh mới.
+                         * lưu ảnh mới và cập nhật đường dẫn.
                          *
                          * Nếu không chọn:
                          * giữ ảnh cũ.
@@ -235,7 +346,9 @@ public class SanPhamController {
                         }
 
                         return ResponseEntity
-                                .ok(repository.save(product));
+                                .ok(
+                                        repository.save(product)
+                                );
 
                     } catch (IOException e) {
 
@@ -250,6 +363,7 @@ public class SanPhamController {
                     }
 
                 })
+
                 .orElseGet(
                         () -> ResponseEntity
                                 .notFound()
@@ -288,7 +402,8 @@ public class SanPhamController {
                     .status(HttpStatus.CONFLICT)
                     .body(
                             "Không thể xóa món vì món này "
-                                    + "đang được sử dụng trong lịch sử đơn hàng."
+                                    + "đang được sử dụng trong "
+                                    + "lịch sử đơn hàng."
                     );
         }
     }
@@ -301,13 +416,19 @@ public class SanPhamController {
             MultipartFile imageFile
     ) throws IOException {
 
+        /*
+         * Không chọn ảnh thì không làm gì.
+         */
         if (imageFile == null ||
                 imageFile.isEmpty()) {
 
             return null;
         }
 
-        // Chỉ nhận ảnh
+        // -------------------------
+        // Kiểm tra loại file
+        // -------------------------
+
         String contentType =
                 imageFile.getContentType();
 
@@ -319,7 +440,10 @@ public class SanPhamController {
             );
         }
 
+        // -------------------------
         // Giới hạn 5MB
+        // -------------------------
+
         if (imageFile.getSize() >
                 5 * 1024 * 1024) {
 
@@ -328,9 +452,17 @@ public class SanPhamController {
             );
         }
 
+        // -------------------------
+        // Tạo thư mục
+        // -------------------------
+
         Files.createDirectories(
                 imageDirectory
         );
+
+        // -------------------------
+        // Lấy extension
+        // -------------------------
 
         String originalName =
                 imageFile.getOriginalFilename();
@@ -346,10 +478,10 @@ public class SanPhamController {
                     ).toLowerCase();
         }
 
-        /*
-         * Không dùng tên file gốc để tránh
-         * lỗi tiếng Việt / khoảng trắng / trùng tên.
-         */
+        // -------------------------
+        // Tạo tên file mới
+        // -------------------------
+
         String fileName =
                 UUID.randomUUID()
                         .toString()
@@ -361,9 +493,10 @@ public class SanPhamController {
                         .resolve(fileName)
                         .normalize();
 
-        /*
-         * Chống path traversal.
-         */
+        // -------------------------
+        // Chống path traversal
+        // -------------------------
+
         if (!target.startsWith(
                 imageDirectory
         )) {
@@ -373,6 +506,10 @@ public class SanPhamController {
             );
         }
 
+        // -------------------------
+        // Copy file
+        // -------------------------
+
         Files.copy(
                 imageFile.getInputStream(),
                 target,
@@ -380,15 +517,16 @@ public class SanPhamController {
         );
 
         /*
-         * Giá trị lưu DB:
+         * DB chỉ lưu path tương đối.
          *
+         * Ví dụ:
          * images/abc123.jpg
          */
         return "images/" + fileName;
     }
 
     // =========================================================
-    // ID
+    // GENERATE ID
     // =========================================================
 
     private String generateId() {
@@ -413,7 +551,7 @@ public class SanPhamController {
     }
 
     // =========================================================
-    // STRING
+    // STRING HELPER
     // =========================================================
 
     private String blankToNull(

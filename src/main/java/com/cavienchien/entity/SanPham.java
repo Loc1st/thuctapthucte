@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "sanpham")
 public class SanPham {
+
     @Id
     @Column(name = "masanpham", length = 50)
     private String maSanPham;
@@ -29,18 +30,59 @@ public class SanPham {
     @JoinColumn(name = "madanhmuc")
     private DanhMuc danhMuc;
 
-    public String getMaSanPham() { return maSanPham; }
-    public void setMaSanPham(String v) { maSanPham = v; }
-    public String getTenSanPham() { return tenSanPham; }
-    public void setTenSanPham(String v) { tenSanPham = v; }
-    public Integer getSoLuong() { return soLuong; }
-    public void setSoLuong(Integer v) { soLuong = v; }
-    public BigDecimal getGiaBan() { return giaBan; }
-    public void setGiaBan(BigDecimal v) { giaBan = v; }
-    public String getAnhSanPham() { return anhSanPham; }
-    public void setAnhSanPham(String v) { anhSanPham = v; }
-    public String getMoTa() { return moTa; }
-    public void setMoTa(String v) { moTa = v; }
-    public DanhMuc getDanhMuc() { return danhMuc; }
-    public void setDanhMuc(DanhMuc v) { danhMuc = v; }
+    public String getMaSanPham() {
+        return maSanPham;
+    }
+
+    public void setMaSanPham(String v) {
+        maSanPham = v;
+    }
+
+    public String getTenSanPham() {
+        return tenSanPham;
+    }
+
+    public void setTenSanPham(String v) {
+        tenSanPham = v;
+    }
+
+    public Integer getSoLuong() {
+        return soLuong;
+    }
+
+    public void setSoLuong(Integer v) {
+        soLuong = v;
+    }
+
+    public BigDecimal getGiaBan() {
+        return giaBan;
+    }
+
+    public void setGiaBan(BigDecimal v) {
+        giaBan = v;
+    }
+
+    public String getAnhSanPham() {
+        return anhSanPham;
+    }
+
+    public void setAnhSanPham(String v) {
+        anhSanPham = v;
+    }
+
+    public String getMoTa() {
+        return moTa;
+    }
+
+    public void setMoTa(String v) {
+        moTa = v;
+    }
+
+    public DanhMuc getDanhMuc() {
+        return danhMuc;
+    }
+
+    public void setDanhMuc(DanhMuc v) {
+        danhMuc = v;
+    }
 }

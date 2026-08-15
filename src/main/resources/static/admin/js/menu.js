@@ -451,6 +451,11 @@ function openModal(product = null) {
             ? getDescription(product)
             : '';
 
+    $('productCategory').value =
+        product && product.danhMuc
+            ? String(product.danhMuc.maDanhMuc)
+            : '';
+
     $('productImageFile').value =
         '';
 
@@ -619,6 +624,19 @@ async function saveProduct(event) {
         formData.append(
             'mota',
             description
+        );
+
+        const categoryId = $('productCategory').value;
+
+        if (!categoryId) {
+            formMessage.textContent =
+                'Vui lòng chọn danh mục.';
+            return;
+        }
+
+        formData.append(
+            'madanhmuc',
+            categoryId
         );
 
         if (imageFile) {

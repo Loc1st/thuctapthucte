@@ -25,9 +25,72 @@
         <p>Chọn món bạn muốn gọi tại bàn.</p>
     </section>
 
-    <div id="loading" class="message">Đang tải menu...</div>
-    <div id="error" class="message error hidden"></div>
-    <section id="productList" class="product-grid"></section>
+    <!-- DANH MỤC -->
+    <div class="category-filter">
+
+        <button
+                type="button"
+                class="category-btn active"
+                data-category="all"
+        >
+            Tất cả
+        </button>
+
+        <button
+                type="button"
+                class="category-btn"
+                data-category="1"
+        >
+            Viên chiên
+        </button>
+
+        <button
+                type="button"
+                class="category-btn"
+                data-category="2"
+        >
+            Hải sản
+        </button>
+
+        <button
+                type="button"
+                class="category-btn"
+                data-category="3"
+        >
+            Món chiên & ăn kèm
+        </button>
+
+        <button
+                type="button"
+                class="category-btn"
+                data-category="4"
+        >
+            Đồ uống
+        </button>
+
+        <button
+                type="button"
+                class="category-btn"
+                data-category="5"
+        >
+            Combo
+        </button>
+
+    </div>
+
+    <div id="loading" class="message">
+        Đang tải menu...
+    </div>
+
+    <div
+            id="error"
+            class="message error hidden"
+    ></div>
+
+    <section
+            id="productList"
+            class="product-grid"
+    ></section>
 </main>
 
 <div id="cartPanel" class="cart-panel hidden">

@@ -4,6 +4,7 @@ const params = new URLSearchParams(window.location.search);
 const tableId = Number(params.get("ban")) || null;
 
 let products = [];
+let selectedCategory = "all";
 
 const cartKey = tableId
     ? `cart_ban_${tableId}`
@@ -38,35 +39,143 @@ function saveCart() {
 }
 
 function getImageUrl(fileName) {
-    // Hiện tại backend chưa phục vụ ảnh cũ.
-    // Khi làm upload/ảnh món, chỉ cần đổi hàm này.
-    return fileName ? `/images/${encodeURIComponent(fileName)}` : "";
+    if (!fileName) {
+        return "";
+    }
+
+    let image = String(fileName).trim();
+
+    if (!image) {
+        return "";
+    }
+
+    // Nếu backend trả URL đầy đủ
+    if (
+        image.startsWith("http://") ||
+        image.startsWith("https://")
+    ) {
+        return image;
+    }
+
+    // Nếu DB đã lưu dạng /images/abc.jpg
+    if (image.startsWith("/images/")) {
+        return image;
+    }
+
+    // Nếu DB lưu dạng images/abc.jpg
+    if (image.startsWith("images/")) {
+        return "/" + image;
+    }
+
+    // Nếu DB chỉ lưu tên file: abc.jpg
+    return "/images/" + encodeURIComponent(image);
+}
+
+function getCategoryId(product) {
+    return String(
+        product.danhMuc?.maDanhMuc
+        ?? product.danhMuc?.madanhmuc
+        ?? product.maDanhMuc
+        ?? product.madanhmuc
+        ?? ''
+    );
 }
 
 function renderProducts() {
+
     productList.innerHTML = "";
 
-    products.forEach(product => {
-        const card = document.createElement("article");
-        card.className = "product-card";
+    const filteredProducts =
+        products.filter(product => {
 
-        const image = getImageUrl(product.anhSanPham);
-        card.innerHTML = `
-            ${image
-                ? `<img class="product-image" src="${image}" alt="${escapeHtml(product.tenSanPham)}"
-                       onerror="this.style.display='none'">`
-                : `<div class="product-image"></div>`}
-            <div class="product-content">
-                <h3>${escapeHtml(product.tenSanPham)}</h3>
-                <p class="description">${escapeHtml(product.moTa || "")}</p>
-                <div class="price">${money(product.giaBan)}</div>
-                <button class="add-button">+ Thêm món</button>
+            if (selectedCategory === "all") {
+                return true;
+            }
+
+            return getCategoryId(product) === selectedCategory;
+        });
+
+    if (filteredProducts.length === 0) {
+
+        productList.innerHTML = `
+            <div class="message">
+                Không có món nào trong danh mục này.
             </div>
         `;
 
-        card.querySelector(".add-button").addEventListener("click", () => {
-            addToCart(product);
-        });
+        return;
+    }
+
+    filteredProducts.forEach(product => {
+
+        const card =
+            document.createElement("article");
+
+        card.className =
+            "product-card";
+
+        const image =
+            getImageUrl(product.anhSanPham);
+
+        const categoryName =
+            product.danhMuc?.tenDanhMuc
+            ?? product.danhMuc?.tendanhmuc
+            ?? "";
+
+        card.innerHTML = `
+
+            ${
+            image
+                ? `
+                        <img
+                            class="product-image"
+                            src="${image}"
+                            alt="${escapeHtml(product.tenSanPham)}"
+                            onerror="this.style.display='none'"
+                        >
+                    `
+                : `
+                        <div class="product-image"></div>
+                    `
+        }
+
+            <div class="product-content">
+
+                ${
+            categoryName
+                ? `
+                            <span class="product-category">
+                                ${escapeHtml(categoryName)}
+                            </span>
+                        `
+                : ""
+        }
+
+                <h3 class="product-name">
+                    ${escapeHtml(product.tenSanPham)}
+                </h3>
+
+                <p class="product-description">
+                    ${escapeHtml(product.moTa || "")}
+                </p>
+
+                <div class="product-price">
+                    ${money(product.giaBan)}
+                </div>
+
+                <button class="add-button">
+                    + Thêm món
+                </button>
+
+            </div>
+        `;
+
+        card
+            .querySelector(".add-button")
+            .addEventListener(
+                "click",
+                () => addToCart(product)
+            );
 
         productList.appendChild(card);
     });
@@ -277,6 +386,28 @@ document.getElementById("orderButton").addEventListener("click", async () => {
         button.textContent = "Đặt món";
     }
 });
+
+document
+    .querySelectorAll(".category-btn")
+    .forEach(button => {
+
+        button.addEventListener("click", () => {
+
+            selectedCategory =
+                button.dataset.category;
+
+            document
+                .querySelectorAll(".category-btn")
+                .forEach(btn => {
+                    btn.classList.remove("active");
+                });
+
+            button.classList.add("active");
+
+            renderProducts();
+        });
+
+    });
 
 async function init() {
     try {

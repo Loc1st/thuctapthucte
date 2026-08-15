@@ -394,14 +394,12 @@
     </nav>
 
 
-    <button
-            id="refreshBtn"
-            class="icon-btn"
-            type="button"
-            title="Làm mới"
+    <a
+            href="/admin/tai-khoan.html"
+            class="account-btn"
     >
-        ↻
-    </button>
+        👤 Quản lý tài khoản
+    </a>
 
 
     <button
@@ -562,6 +560,24 @@
                     required
                     placeholder="12000"
             >
+
+            <!-- DANH MỤC -->
+            <label for="productCategory">
+                Danh mục <span>*</span>
+            </label>
+
+            <select
+                    id="productCategory"
+                    name="madanhmuc"
+                    required
+            >
+                <option value="">-- Chọn danh mục --</option>
+                <option value="1">Viên chiên</option>
+                <option value="2">Hải sản</option>
+                <option value="3">Món chiên & ăn kèm</option>
+                <option value="4">Đồ uống</option>
+                <option value="5">Combo</option>
+            </select>
 
 
             <label for="productDescription">

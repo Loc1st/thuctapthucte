@@ -227,7 +227,15 @@ function renderStatusChart(data) {
                 STATUS[2],
                 STATUS[3]
             ],
-            datasets: [{ data: values }]
+            datasets: [{
+                data: values,
+                backgroundColor: [
+                    '#3498DB', // Chờ xác nhận - xanh dương
+                    '#F1C40F', // Đang làm - vàng
+                    '#2ECC71', // Hoàn thành - xanh lá
+                    '#E74C3C'  // Đã hủy - đỏ
+                ]
+            }]
         },
         options: {
             responsive: true,

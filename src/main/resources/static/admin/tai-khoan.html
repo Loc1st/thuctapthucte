@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Quản lý tài khoản - Cá Viên Chiên</title>
+
+    <link
+            rel="stylesheet"
+            href="/admin/css/admin.css"
+    >
+
+    <style>
+
+        /* =========================
+           ACCOUNT PAGE
+           ========================= */
+
+        .account-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 16px;
+
+            margin-bottom: 20px;
+        }
+
+        .account-search {
+            width: 100%;
+            max-width: 420px;
+
+            padding: 12px 14px;
+
+            border: 1px solid #dbe2ea;
+            border-radius: 10px;
+
+            background: #ffffff;
+
+            font-size: 14px;
+
+            outline: none;
+        }
+
+        .account-search:focus {
+            border-color: #94a3b8;
+        }
+
+        .account-count {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+
+        /* =========================
+           TABLE
+           ========================= */
+
+        .account-table-wrap {
+            overflow-x: auto;
+        }
+
+        .account-table {
+            width: 100%;
+
+            border-collapse: collapse;
+
+            min-width: 850px;
+        }
+
+        .account-table th {
+            padding: 14px 16px;
+
+            text-align: left;
+
+            background: #f8fafc;
+
+            color: #475569;
+
+            font-size: 13px;
+            font-weight: 700;
+
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .account-table td {
+            padding: 15px 16px;
+
+            border-bottom: 1px solid #edf2f7;
+
+            color: #1e293b;
+
+            font-size: 14px;
+        }
+
+        .account-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+
+        /* =========================
+           USER
+           ========================= */
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: #eef2ff;
+
+            font-size: 18px;
+        }
+
+        .user-name {
+            font-weight: 700;
+            color: #172033;
+        }
+
+        .user-username {
+            margin-top: 3px;
+
+            color: #94a3b8;
+
+            font-size: 12px;
+        }
+
+
+        /* =========================
+           ROLE
+           ========================= */
+
+        .role-badge,
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+
+            padding: 6px 10px;
+
+            border-radius: 999px;
+
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .role-admin {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
+        .role-staff {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .status-locked {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+
+        /* =========================
+           ACTIONS
+           ========================= */
+
+        .account-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .account-action {
+            padding: 7px 11px;
+
+            border-radius: 8px;
+
+            border: 1px solid #dbe2ea;
+
+            background: #ffffff;
+
+            cursor: pointer;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            transition: 0.2s ease;
+        }
+
+        .account-action:hover {
+            background: #f1f5f9;
+        }
+
+        .account-action.lock {
+            color: #dc2626;
+        }
+
+        .account-action.unlock {
+            color: #16a34a;
+        }
+
+
+        /* =========================
+           RESPONSIVE
+           ========================= */
+
+        @media (max-width: 700px) {
+
+            .account-toolbar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .account-search {
+                max-width: none;
+            }
+
+        }
+
+        /* =========================
+   ACCOUNT TOOLBAR
+   ========================= */
+
+        .account-toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .add-account-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 12px 18px;
+
+            border: 0;
+            border-radius: 10px;
+
+            background: #111827;
+            color: #ffffff;
+
+            font-size: 14px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            white-space: nowrap;
+
+            transition: all 0.2s ease;
+        }
+
+        .add-account-btn:hover {
+            background: #1f2937;
+            transform: translateY(-1px);
+        }
+
+
+        /* =========================
+           ACTION BUTTONS
+           ========================= */
+
+        .account-action.edit {
+            color: #2563eb;
+        }
+
+        .account-action.delete {
+            color: #dc2626;
+        }
+
+
+        /* =========================
+           MODAL
+           ========================= */
+
+        .account-modal {
+            position: fixed;
+
+            inset: 0;
+
+            display: none;
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+
+            background: rgba(15, 23, 42, 0.5);
+
+            z-index: 9999;
+        }
+
+        .account-modal.show {
+            display: flex;
+        }
+
+        .account-modal-card {
+            width: 100%;
+            max-width: 500px;
+
+            background: #ffffff;
+
+            border-radius: 18px;
+
+            padding: 26px;
+
+            box-shadow:
+                    0 20px 60px rgba(15, 23, 42, 0.2);
+
+            animation: modalShow 0.18s ease;
+        }
+
+        @keyframes modalShow {
+
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+
+        }
+
+        .account-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            margin-bottom: 24px;
+        }
+
+        .account-modal-header h2 {
+            margin: 0;
+
+            font-size: 22px;
+            color: #172033;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+
+            border: 0;
+            border-radius: 8px;
+
+            background: #f1f5f9;
+
+            color: #475569;
+
+            font-size: 20px;
+
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            background: #e2e8f0;
+        }
+
+
+        /* =========================
+           FORM
+           ========================= */
+
+        .account-form-group {
+            margin-bottom: 16px;
+        }
+
+        .account-form-group label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            color: #334155;
+
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .account-form-group input,
+        .account-form-group select {
+            width: 100%;
+
+            box-sizing: border-box;
+
+            padding: 12px 13px;
+
+            border: 1px solid #dbe2ea;
+            border-radius: 9px;
+
+            background: #ffffff;
+
+            color: #172033;
+
+            font-size: 14px;
+
+            outline: none;
+        }
+
+        .account-form-group input:focus,
+        .account-form-group select:focus {
+            border-color: #64748b;
+        }
+
+
+        /* =========================
+           MODAL ACTIONS
+           ========================= */
+
+        .account-modal-actions {
+            display: flex;
+
+            justify-content: flex-end;
+
+            gap: 10px;
+
+            margin-top: 24px;
+        }
+
+        .modal-btn {
+            padding: 11px 17px;
+
+            border-radius: 9px;
+
+            font-size: 14px;
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+        .modal-btn.cancel {
+            border: 1px solid #dbe2ea;
+
+            background: #ffffff;
+
+            color: #475569;
+        }
+
+        .modal-btn.cancel:hover {
+            background: #f8fafc;
+        }
+
+        .modal-btn.save {
+            border: 0;
+
+            background: #111827;
+
+            color: #ffffff;
+        }
+
+        .modal-btn.save:hover {
+            background: #1f2937;
+        }
+
+
+        .account-form-message {
+            min-height: 20px;
+
+            margin-top: 5px;
+
+            color: #dc2626;
+
+            font-size: 13px;
+        }
+
+
+        @media (max-width: 700px) {
+
+            .account-toolbar-left {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .account-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .add-account-btn {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<header class="topbar">
+
+    <a
+            class="brand"
+            href="/admin/index.html"
+    >
+
+        <span class="logo">
+            🍢
+        </span>
+
+        <span>
+
+            <b>
+                Cá Viên Chiên
+            </b>
+
+            <small>
+                Quản trị hệ thống
+            </small>
+
+        </span>
+
+    </a>
+
+
+    <nav>
+
+        <a href="/admin/index.html">
+            📊 Tổng quan
+        </a>
+
+        <a href="/admin/don-hang.html">
+            🧾 Đơn hàng
+        </a>
+
+        <a href="/admin/thuc-don.html">
+            🍽️ Thực đơn
+        </a>
+
+        <a href="/admin/ban.html">
+            🪑 Bàn
+        </a>
+
+        <a
+                class="active"
+                href="/admin/tai-khoan.html"
+        >
+            👤 Tài khoản
+        </a>
+
+    </nav>
+
+
+    <button
+            id="logoutBtn"
+            class="logout-btn"
+            type="button"
+    >
+        Đăng xuất
+    </button>
+
+</header>
+
+
+<main class="page">
+
+
+    <!-- =========================
+         HEADER
+         ========================= -->
+
+    <section class="hero compact">
+
+        <div>
+
+            <p class="eyebrow">
+                ACCOUNT MANAGEMENT
+            </p>
+
+            <h1>
+                Quản lý tài khoản
+            </h1>
+
+            <p class="muted">
+                Quản lý tài khoản Admin và Staff của hệ thống.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         ACCOUNT TABLE
+         ========================= -->
+
+    <section class="panel">
+
+        <div class="account-toolbar">
+
+            <div class="account-toolbar-left">
+
+                <input
+                        id="accountSearch"
+                        class="account-search"
+                        type="text"
+                        placeholder="Tìm tên hoặc tài khoản..."
+                        autocomplete="off"
+                >
+
+                <span
+                        id="accountCount"
+                        class="account-count"
+                >
+            0 tài khoản
+        </span>
+
+            </div>
+
+            <button
+                    id="addAccountBtn"
+                    class="add-account-btn"
+                    type="button"
+            >
+                ＋ Thêm tài khoản
+            </button>
+
+        </div>
+
+
+        <div class="account-table-wrap">
+
+            <table class="account-table">
+
+                <thead>
+
+                <tr>
+
+                    <th>
+                        Tài khoản
+                    </th>
+
+                    <th>
+                        Email
+                    </th>
+
+                    <th>
+                        Vai trò
+                    </th>
+
+                    <th>
+                        Trạng thái
+                    </th>
+
+                    <th>
+                        Đăng nhập gần nhất
+                    </th>
+
+                    <th>
+                        Thao tác
+                    </th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody id="accountTableBody">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    <!-- =========================
+     ACCOUNT MODAL
+     ========================= -->
+
+    <div
+            id="accountModal"
+            class="account-modal"
+    >
+
+        <div class="account-modal-card">
+
+            <div class="account-modal-header">
+
+                <h2 id="modalTitle">
+                    Thêm tài khoản
+                </h2>
+
+                <button
+                        id="closeModalBtn"
+                        class="modal-close"
+                        type="button"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <form id="accountForm">
+
+
+                <div class="account-form-group">
+
+                    <label for="accountName">
+                        Họ và tên
+                    </label>
+
+                    <input
+                            id="accountName"
+                            type="text"
+                            placeholder="Nhập họ và tên"
+                            required
+                    >
+
+                </div>
+
+
+                <div class="account-form-group">
+
+                    <label for="accountUsername">
+                        Tên đăng nhập
+                    </label>
+
+                    <input
+                            id="accountUsername"
+                            type="text"
+                            placeholder="Nhập tên đăng nhập"
+                            required
+                    >
+
+                </div>
+
+
+                <div class="account-form-group">
+
+                    <label for="accountEmail">
+                        Email
+                    </label>
+
+                    <input
+                            id="accountEmail"
+                            type="email"
+                            placeholder="example@email.com"
+                            required
+                    >
+
+                </div>
+
+
+                <div class="account-form-group">
+
+                    <label for="accountPassword">
+                        Mật khẩu
+                    </label>
+
+                    <input
+                            id="accountPassword"
+                            type="password"
+                            placeholder="Nhập mật khẩu"
+                    >
+
+                </div>
+
+
+                <div class="account-form-group">
+
+                    <label for="accountRole">
+                        Vai trò
+                    </label>
+
+                    <select id="accountRole">
+
+                        <option value="STAFF">
+                            STAFF
+                        </option>
+
+                        <option value="ADMIN">
+                            ADMIN
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div
+                        id="accountFormMessage"
+                        class="account-form-message"
+                ></div>
+
+
+                <div class="account-modal-actions">
+
+                    <button
+                            id="cancelModalBtn"
+                            type="button"
+                            class="modal-btn cancel"
+                    >
+                        Hủy
+                    </button>
+
+                    <button
+                            type="submit"
+                            class="modal-btn save"
+                    >
+                        💾 Lưu tài khoản
+                    </button>
+
+                </div>
+
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+
+</main>
+
+
+<script src="/admin/js/tai-khoan.js"></script>
+
+<script src="/js/auth.js"></script>
+
+</body>
+
+</html>
