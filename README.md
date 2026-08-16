@@ -1,4 +1,4 @@
-# Ca Vien Chien Backend V4
+# Ca Vien Chien
 
 Spring Boot 3.5.4 + JPA + MySQL/MariaDB.
 
