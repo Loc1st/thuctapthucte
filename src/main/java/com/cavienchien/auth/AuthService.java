@@ -1,44 +1,51 @@
+
 package com.cavienchien.auth;
 
+import com.cavienchien.entity.TaiKhoan;
+import com.cavienchien.repository.TaiKhoanRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 public class AuthService {
 
-    // =========================
-    // TÀI KHOẢN CỐ ĐỊNH
-    // =========================
+    private final TaiKhoanRepository taiKhoanRepository;
 
-    private static final String ADMIN_USERNAME = "admin";
-    private static final String ADMIN_PASSWORD = "123456";
+    public AuthService(TaiKhoanRepository taiKhoanRepository) {
+        this.taiKhoanRepository = taiKhoanRepository;
+    }
 
-    private static final String STAFF_USERNAME = "staff";
-    private static final String STAFF_PASSWORD = "123456";
-
-
-    public Role authenticate(
-            String username,
-            String password
-    ) {
-
+    @Transactional
+    public Role authenticate(String username, String password) {
         if (username == null || password == null) {
             return null;
         }
 
-        // ADMIN
-        if (ADMIN_USERNAME.equals(username)
-                && ADMIN_PASSWORD.equals(password)) {
+        TaiKhoan taiKhoan = taiKhoanRepository
+                .findByTenDangNhap(username.trim())
+                .orElse(null);
 
-            return Role.ADMIN;
+        if (taiKhoan == null) {
+            return null;
         }
 
-        // STAFF
-        if (STAFF_USERNAME.equals(username)
-                && STAFF_PASSWORD.equals(password)) {
-
-            return Role.STAFF;
+        // Không cho đăng nhập nếu tài khoản bị khóa
+        if (taiKhoan.getTrangThai() != TaiKhoan.TrangThai.ACTIVE) {
+            return null;
         }
 
-        return null;
+        // So sánh mật khẩu theo yêu cầu hiện tại
+        if (!taiKhoan.getMatKhau().equals(password)) {
+            return null;
+        }
+
+        taiKhoan.setDangNhapCuoi(LocalDateTime.now());
+        taiKhoanRepository.save(taiKhoan);
+
+        return taiKhoan.getVaiTro() == TaiKhoan.VaiTro.ADMIN
+                ? Role.ADMIN
+                : Role.STAFF;
     }
 }

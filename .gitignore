@@ -1,8 +1,15 @@
-# Build Maven
-target/
+﻿# Build Maven
+/target/
 
 # Runtime logs
 *.log
 
 # Uploaded files
-uploads/
+/uploads/
+
+# IDE
+.idea/
+*.iml
+
+# Environment variables
+.env

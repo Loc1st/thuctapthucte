@@ -1,941 +1,298 @@
-// =========================
-// DATABASE ẢO
-// =========================
 
-const fakeAccounts = [
+const API_URL = "/api/tai-khoan";
 
-    {
-        id: 1,
-        username: "admin",
-        name: "Quản trị viên",
-        email: "admin@cavienchien.vn",
-        role: "ADMIN",
-        status: "ACTIVE",
-        lastLogin: "16/08/2026 00:42"
-    },
-
-    {
-        id: 2,
-        username: "staff",
-        name: "Nhân viên cửa hàng",
-        email: "staff@cavienchien.vn",
-        role: "STAFF",
-        status: "ACTIVE",
-        lastLogin: "15/08/2026 22:18"
-    },
-
-    {
-        id: 3,
-        username: "staff01",
-        name: "Nguyễn Văn An",
-        email: "an@cavienchien.vn",
-        role: "STAFF",
-        status: "ACTIVE",
-        lastLogin: "15/08/2026 19:35"
-    },
-
-    {
-        id: 4,
-        username: "staff02",
-        name: "Trần Minh Khoa",
-        email: "khoa@cavienchien.vn",
-        role: "STAFF",
-        status: "ACTIVE",
-        lastLogin: "14/08/2026 20:11"
-    },
-
-    {
-        id: 5,
-        username: "staff03",
-        name: "Lê Hoàng Nam",
-        email: "nam@cavienchien.vn",
-        role: "STAFF",
-        status: "LOCKED",
-        lastLogin: "10/08/2026 18:42"
-    }
-
-];
-
-
-// =========================
-// STATE
-// =========================
-
+let accounts = [];
 let editingId = null;
 
+const tableBody = document.getElementById("accountTableBody");
+const searchInput = document.getElementById("accountSearch");
+const accountCount = document.getElementById("accountCount");
+const modal = document.getElementById("accountModal");
+const modalTitle = document.getElementById("modalTitle");
+const accountForm = document.getElementById("accountForm");
+const formMessage = document.getElementById("accountFormMessage");
 
-// =========================
-// DOM
-// =========================
-
-const tableBody =
-    document.getElementById(
-        "accountTableBody"
-    );
-
-const searchInput =
-    document.getElementById(
-        "accountSearch"
-    );
-
-const accountCount =
-    document.getElementById(
-        "accountCount"
-    );
-
-const modal =
-    document.getElementById(
-        "accountModal"
-    );
-
-const modalTitle =
-    document.getElementById(
-        "modalTitle"
-    );
-
-const accountForm =
-    document.getElementById(
-        "accountForm"
-    );
-
-const formMessage =
-    document.getElementById(
-        "accountFormMessage"
-    );
-
-const nameInput =
-    document.getElementById(
-        "accountName"
-    );
-
-const usernameInput =
-    document.getElementById(
-        "accountUsername"
-    );
-
-const emailInput =
-    document.getElementById(
-        "accountEmail"
-    );
-
-const passwordInput =
-    document.getElementById(
-        "accountPassword"
-    );
-
-const roleInput =
-    document.getElementById(
-        "accountRole"
-    );
-
-
-// =========================
-// ESCAPE HTML
-// =========================
+const nameInput = document.getElementById("accountName");
+const usernameInput = document.getElementById("accountUsername");
+const emailInput = document.getElementById("accountEmail");
+const passwordInput = document.getElementById("accountPassword");
+const roleInput = document.getElementById("accountRole");
 
 function escapeHtml(value) {
-
-    return String(value)
+    return String(value ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
-
 }
 
+function formatDate(value) {
+    if (!value) return "Chưa đăng nhập";
 
-// =========================
-// ROLE
-// =========================
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "Chưa đăng nhập";
+
+    return new Intl.DateTimeFormat("vi-VN", {
+        dateStyle: "short",
+        timeStyle: "short"
+    }).format(date);
+}
 
 function roleHtml(role) {
-
-    if (role === "ADMIN") {
-
-        return `
-            <span class="role-badge role-admin">
-                ADMIN
-            </span>
-        `;
-
-    }
-
-    return `
-        <span class="role-badge role-staff">
-            STAFF
-        </span>
-    `;
-
+    return role === "ADMIN"
+        ? '<span class="role-badge role-admin">ADMIN</span>'
+        : '<span class="role-badge role-staff">STAFF</span>';
 }
-
-
-// =========================
-// STATUS
-// =========================
 
 function statusHtml(status) {
-
-    if (status === "ACTIVE") {
-
-        return `
-            <span class="status-badge status-active">
-                ● Hoạt động
-            </span>
-        `;
-
-    }
-
-    return `
-        <span class="status-badge status-locked">
-            ● Đã khóa
-        </span>
-    `;
-
+    return status === "ACTIVE"
+        ? '<span class="status-badge status-active">● Hoạt động</span>'
+        : '<span class="status-badge status-locked">● Đã khóa</span>';
 }
 
+async function apiRequest(url, options = {}) {
+    const response = await fetch(url, {
+        credentials: "same-origin",
+        ...options,
+        headers: {
+            ...(options.body ? { "Content-Type": "application/json" } : {}),
+            ...options.headers
+        }
+    });
 
-// =========================
-// RENDER
-// =========================
+    const text = await response.text();
+    let data = {};
+
+    try {
+        data = text ? JSON.parse(text) : {};
+    } catch {
+        data = { message: text };
+    }
+
+    if (!response.ok) {
+        throw new Error(data.message || `Lỗi máy chủ (${response.status})`);
+    }
+
+    return data;
+}
+
+async function loadAccounts() {
+    tableBody.innerHTML = `
+        <tr><td colspan="6" style="text-align:center;padding:30px">
+            Đang tải dữ liệu...
+        </td></tr>`;
+
+    try {
+        accounts = await apiRequest(API_URL);
+        renderAccounts();
+    } catch (error) {
+        tableBody.innerHTML = `
+            <tr><td colspan="6" style="text-align:center;padding:30px;color:#dc2626">
+                ${escapeHtml(error.message)}
+            </td></tr>`;
+
+        accountCount.textContent = "Không tải được tài khoản";
+    }
+}
 
 function renderAccounts() {
+    const keyword = searchInput.value.trim().toLowerCase();
 
-    const keyword =
-        searchInput.value
-            .trim()
-            .toLowerCase();
+    const filtered = accounts.filter(account =>
+        (account.hoTen || "").toLowerCase().includes(keyword) ||
+        (account.tenDangNhap || "").toLowerCase().includes(keyword) ||
+        (account.email || "").toLowerCase().includes(keyword)
+    );
 
+    accountCount.textContent = `${filtered.length} tài khoản`;
 
-    const accounts =
-        fakeAccounts.filter(account => {
-
-            return (
-
-                account.username
-                    .toLowerCase()
-                    .includes(keyword)
-
-                ||
-
-                account.name
-                    .toLowerCase()
-                    .includes(keyword)
-
-                ||
-
-                account.email
-                    .toLowerCase()
-                    .includes(keyword)
-
-            );
-
-        });
-
-
-    accountCount.textContent =
-        `${accounts.length} tài khoản`;
-
-
-    if (accounts.length === 0) {
-
+    if (filtered.length === 0) {
         tableBody.innerHTML = `
-            <tr>
-
-                <td
-                    colspan="6"
-                    style="
-                        text-align:center;
-                        padding:40px;
-                        color:#94a3b8;
-                    "
-                >
-                    Không tìm thấy tài khoản.
-                </td>
-
-            </tr>
-        `;
-
+            <tr><td colspan="6" style="text-align:center;padding:40px;color:#94a3b8">
+                Không tìm thấy tài khoản.
+            </td></tr>`;
         return;
     }
 
+    tableBody.innerHTML = filtered.map(account => {
+        const isAdmin = account.vaiTro === "ADMIN";
 
-    tableBody.innerHTML =
-        accounts
-            .map(account => {
+        const actions = isAdmin
+            ? `<span style="color:#94a3b8;font-size:12px">Tài khoản hệ thống</span>`
+            : `
+                <button class="account-action edit"
+                    onclick="editAccount(${account.maTaiKhoan})">✏️ Sửa</button>
+                <button class="account-action delete"
+                    onclick="deleteAccount(${account.maTaiKhoan})">🗑️ Xóa</button>
+                <button class="account-action ${account.trangThai === "ACTIVE" ? "lock" : "unlock"}"
+                    onclick="toggleAccount(${account.maTaiKhoan})">
+                    ${account.trangThai === "ACTIVE" ? "🔒 Khóa" : "🔓 Mở khóa"}
+                </button>`;
 
-                const isAdmin =
-                    account.role === "ADMIN";
-
-
-                let actions = "";
-
-
-                if (isAdmin) {
-
-                    actions = `
-                        <span
-                            style="
-                                color:#94a3b8;
-                                font-size:12px;
-                            "
-                        >
-                            Tài khoản hệ thống
-                        </span>
-                    `;
-
-                } else {
-
-                    const lockButton =
-                        account.status === "ACTIVE"
-
-                            ? `
-                                <button
-                                    class="
-                                        account-action
-                                        lock
-                                    "
-                                    onclick="
-                                        toggleAccount(
-                                            ${account.id}
-                                        )
-                                    "
-                                >
-                                    🔒 Khóa
-                                </button>
-                              `
-
-                            : `
-                                <button
-                                    class="
-                                        account-action
-                                        unlock
-                                    "
-                                    onclick="
-                                        toggleAccount(
-                                            ${account.id}
-                                        )
-                                    "
-                                >
-                                    🔓 Mở khóa
-                                </button>
-                              `;
-
-
-                    actions = `
-
-                        <button
-                            class="
-                                account-action
-                                edit
-                            "
-                            onclick="
-                                editAccount(
-                                    ${account.id}
-                                )
-                            "
-                        >
-                            ✏️ Sửa
-                        </button>
-
-
-                        <button
-                            class="
-                                account-action
-                                delete
-                            "
-                            onclick="
-                                deleteAccount(
-                                    ${account.id}
-                                )
-                            "
-                        >
-                            🗑️ Xóa
-                        </button>
-
-
-                        ${lockButton}
-
-                    `;
-
-                }
-
-
-                return `
-
-                    <tr>
-
-                        <td>
-
-                            <div class="user-cell">
-
-                                <div class="avatar">
-
-                                    ${
-                    isAdmin
-                        ? "👑"
-                        : "👤"
-                }
-
-                                </div>
-
-                                <div>
-
-                                    <div class="user-name">
-                                        ${escapeHtml(
-                    account.name
-                )}
-                                    </div>
-
-                                    <div class="user-username">
-                                        @${escapeHtml(
-                    account.username
-                )}
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        </td>
-
-
-                        <td>
-                            ${escapeHtml(
-                    account.email
-                )}
-                        </td>
-
-
-                        <td>
-                            ${roleHtml(
-                    account.role
-                )}
-                        </td>
-
-
-                        <td>
-                            ${statusHtml(
-                    account.status
-                )}
-                        </td>
-
-
-                        <td>
-                            ${escapeHtml(
-                    account.lastLogin
-                )}
-                        </td>
-
-
-                        <td>
-
-                            <div
-                                class="account-actions"
-                            >
-                                ${actions}
-                            </div>
-
-                        </td>
-
-                    </tr>
-
-                `;
-
-            })
-            .join("");
-
+        return `
+            <tr>
+                <td>
+                    <div class="user-cell">
+                        <div class="avatar">${isAdmin ? "👑" : "👤"}</div>
+                        <div>
+                            <div class="user-name">${escapeHtml(account.hoTen)}</div>
+                            <div class="user-username">@${escapeHtml(account.tenDangNhap)}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>${escapeHtml(account.email || "")}</td>
+                <td>${roleHtml(account.vaiTro)}</td>
+                <td>${statusHtml(account.trangThai)}</td>
+                <td>${escapeHtml(formatDate(account.dangNhapCuoi))}</td>
+                <td><div class="account-actions">${actions}</div></td>
+            </tr>`;
+    }).join("");
 }
-
-
-// =========================
-// OPEN ADD MODAL
-// =========================
 
 function openAddModal() {
-
     editingId = null;
-
-    modalTitle.textContent =
-        "Thêm tài khoản";
-
+    modalTitle.textContent = "Thêm tài khoản";
     accountForm.reset();
-
     roleInput.value = "STAFF";
-
     passwordInput.required = true;
-
     formMessage.textContent = "";
-
     modal.classList.add("show");
-
     nameInput.focus();
-
 }
-
-
-// =========================
-// OPEN EDIT MODAL
-// =========================
 
 function editAccount(id) {
+    const account = accounts.find(item => item.maTaiKhoan === id);
+    if (!account) return;
 
-    const account =
-        fakeAccounts.find(
-            item => item.id === id
-        );
-
-
-    if (!account) {
+    if (account.vaiTro === "ADMIN") {
+        alert("Tài khoản Admin hệ thống không được chỉnh sửa.");
         return;
     }
-
-
-    if (account.role === "ADMIN") {
-
-        alert(
-            "Tài khoản Admin hệ thống không được chỉnh sửa."
-        );
-
-        return;
-
-    }
-
 
     editingId = id;
+    modalTitle.textContent = "Sửa tài khoản";
 
-
-    modalTitle.textContent =
-        "Sửa tài khoản";
-
-
-    nameInput.value =
-        account.name;
-
-    usernameInput.value =
-        account.username;
-
-    emailInput.value =
-        account.email;
-
-    passwordInput.value =
-        "";
-
-    roleInput.value =
-        account.role;
-
-
-    /*
-     * Khi sửa:
-     * mật khẩu không bắt buộc.
-     * Để trống = giữ mật khẩu cũ.
-     */
+    nameInput.value = account.hoTen || "";
+    usernameInput.value = account.tenDangNhap || "";
+    emailInput.value = account.email || "";
+    passwordInput.value = "";
+    roleInput.value = account.vaiTro;
 
     passwordInput.required = false;
-
-
     formMessage.textContent = "";
-
-
     modal.classList.add("show");
-
     nameInput.focus();
-
 }
-
-
-// =========================
-// CLOSE MODAL
-// =========================
 
 function closeModal() {
-
     modal.classList.remove("show");
-
     editingId = null;
-
     accountForm.reset();
-
     formMessage.textContent = "";
-
 }
 
+accountForm.addEventListener("submit", async event => {
+    event.preventDefault();
 
-// =========================
-// SAVE ACCOUNT
-// =========================
+    const hoTen = nameInput.value.trim();
+    const tenDangNhap = usernameInput.value.trim();
+    const email = emailInput.value.trim();
+    const matKhau = passwordInput.value;
+    const vaiTro = roleInput.value;
 
-accountForm.addEventListener(
-    "submit",
-    function (event) {
+    if (!hoTen || !tenDangNhap) {
+        formMessage.textContent = "Vui lòng nhập họ tên và tên đăng nhập.";
+        return;
+    }
 
-        event.preventDefault();
+    if (editingId === null && !matKhau) {
+        formMessage.textContent = "Vui lòng nhập mật khẩu.";
+        return;
+    }
 
+    const payload = { hoTen, tenDangNhap, email: email || null, vaiTro };
 
-        const name =
-            nameInput.value.trim();
+    if (matKhau) {
+        payload.matKhau = matKhau;
+    }
 
-        const username =
-            usernameInput.value.trim();
+    try {
+        if (editingId === null) {
+            payload.trangThai = "ACTIVE";
 
-        const email =
-            emailInput.value.trim();
-
-        const password =
-            passwordInput.value;
-
-        const role =
-            roleInput.value;
-
-
-        // -------------------------
-        // VALIDATE
-        // -------------------------
-
-        if (!name) {
-
-            formMessage.textContent =
-                "Vui lòng nhập họ và tên.";
-
-            return;
-
-        }
-
-
-        if (!username) {
-
-            formMessage.textContent =
-                "Vui lòng nhập tên đăng nhập.";
-
-            return;
-
-        }
-
-
-        if (!email) {
-
-            formMessage.textContent =
-                "Vui lòng nhập email.";
-
-            return;
-
-        }
-
-
-        if (
-            editingId === null &&
-            !password
-        ) {
-
-            formMessage.textContent =
-                "Vui lòng nhập mật khẩu.";
-
-            return;
-
-        }
-
-
-        // -------------------------
-        // CHECK USERNAME
-        // -------------------------
-
-        const duplicate =
-            fakeAccounts.find(account => {
-
-                return (
-
-                    account.username
-                        .toLowerCase() ===
-                    username.toLowerCase()
-
-                    &&
-
-                    account.id !== editingId
-
-                );
-
+            await apiRequest(API_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
             });
 
+            alert("Đã tạo tài khoản thành công.");
+        } else {
+            await apiRequest(`${API_URL}/${editingId}`, {
+                method: "PUT",
+                body: JSON.stringify(payload)
+            });
 
-        if (duplicate) {
-
-            formMessage.textContent =
-                "Tên đăng nhập đã tồn tại.";
-
-            return;
-
+            alert("Đã cập nhật tài khoản.");
         }
-
-
-        // -------------------------
-        // ADD
-        // -------------------------
-
-        if (editingId === null) {
-
-            const newAccount = {
-
-                id:
-                    Date.now(),
-
-                username,
-
-                name,
-
-                email,
-
-                role,
-
-                status:
-                    "ACTIVE",
-
-                lastLogin:
-                    "Chưa đăng nhập"
-
-            };
-
-
-            fakeAccounts.push(
-                newAccount
-            );
-
-
-            closeModal();
-
-            renderAccounts();
-
-
-            alert(
-                "Đã tạo tài khoản thành công."
-            );
-
-            return;
-
-        }
-
-
-        // -------------------------
-        // EDIT
-        // -------------------------
-
-        const account =
-            fakeAccounts.find(
-                item =>
-                    item.id === editingId
-            );
-
-
-        if (!account) {
-            return;
-        }
-
-
-        account.name =
-            name;
-
-        account.username =
-            username;
-
-        account.email =
-            email;
-
-        account.role =
-            role;
-
-
-        /*
-         * Nếu nhập mật khẩu mới
-         * thì coi như đã đổi mật khẩu.
-         */
-
-        if (password) {
-
-            account.password =
-                password;
-
-        }
-
 
         closeModal();
-
-        renderAccounts();
-
-
-        alert(
-            "Đã cập nhật tài khoản."
-        );
-
+        await loadAccounts();
+    } catch (error) {
+        formMessage.textContent = error.message;
     }
-);
+});
 
+async function deleteAccount(id) {
+    const account = accounts.find(item => item.maTaiKhoan === id);
+    if (!account) return;
 
-// =========================
-// DELETE
-// =========================
-
-function deleteAccount(id) {
-
-    const account =
-        fakeAccounts.find(
-            item => item.id === id
-        );
-
-
-    if (!account) {
+    if (account.vaiTro === "ADMIN") {
+        alert("Không thể xóa tài khoản Admin hệ thống.");
         return;
     }
 
-
-    if (account.role === "ADMIN") {
-
-        alert(
-            "Không thể xóa tài khoản Admin hệ thống."
-        );
-
-        return;
-
-    }
-
-
-    const confirmed =
-        confirm(
-            `Bạn có chắc muốn xóa tài khoản "${account.username}"?`
-        );
-
-
-    if (!confirmed) {
+    if (!confirm(`Bạn có chắc muốn xóa tài khoản "${account.tenDangNhap}"?`)) {
         return;
     }
 
-
-    const index =
-        fakeAccounts.findIndex(
-            item => item.id === id
-        );
-
-
-    if (index === -1) {
-        return;
+    try {
+        await apiRequest(`${API_URL}/${id}`, { method: "DELETE" });
+        await loadAccounts();
+        alert("Đã xóa tài khoản.");
+    } catch (error) {
+        alert(error.message);
     }
-
-
-    fakeAccounts.splice(
-        index,
-        1
-    );
-
-
-    renderAccounts();
-
-
-    alert(
-        "Đã xóa tài khoản."
-    );
-
 }
 
+async function toggleAccount(id) {
+    const account = accounts.find(item => item.maTaiKhoan === id);
+    if (!account) return;
 
-// =========================
-// LOCK / UNLOCK
-// =========================
-
-function toggleAccount(id) {
-
-    const account =
-        fakeAccounts.find(
-            item => item.id === id
-        );
-
-
-    if (!account) {
+    if (account.vaiTro === "ADMIN") {
+        alert("Không thể khóa tài khoản Admin hệ thống.");
         return;
     }
 
+    try {
+        await apiRequest(`${API_URL}/${id}/trang-thai`, {
+            method: "PATCH"
+        });
 
-    if (account.role === "ADMIN") {
-
-        alert(
-            "Không thể khóa tài khoản Admin."
-        );
-
-        return;
-
+        await loadAccounts();
+    } catch (error) {
+        alert(error.message);
     }
-
-
-    if (
-        account.status ===
-        "ACTIVE"
-    ) {
-
-        account.status =
-            "LOCKED";
-
-    } else {
-
-        account.status =
-            "ACTIVE";
-
-    }
-
-
-    renderAccounts();
-
 }
 
+document.getElementById("addAccountBtn").addEventListener("click", openAddModal);
+document.getElementById("closeModalBtn").addEventListener("click", closeModal);
+document.getElementById("cancelModalBtn").addEventListener("click", closeModal);
 
-// =========================
-// EVENTS
-// =========================
+modal.addEventListener("click", event => {
+    if (event.target === modal) closeModal();
+});
 
-document
-    .getElementById("addAccountBtn")
-    .addEventListener(
-        "click",
-        openAddModal
-    );
+searchInput.addEventListener("input", renderAccounts);
 
-
-document
-    .getElementById("closeModalBtn")
-    .addEventListener(
-        "click",
-        closeModal
-    );
-
-
-document
-    .getElementById("cancelModalBtn")
-    .addEventListener(
-        "click",
-        closeModal
-    );
-
-
-modal.addEventListener(
-    "click",
-    function (event) {
-
-        if (
-            event.target === modal
-        ) {
-
-            closeModal();
-
-        }
-
-    }
-);
-
-
-searchInput.addEventListener(
-    "input",
-    renderAccounts
-);
-
-
-// =========================
-// INIT
-// =========================
-
-renderAccounts();
+loadAccounts();

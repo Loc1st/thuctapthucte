@@ -172,17 +172,108 @@ function renderProducts() {
 
         card
             .querySelector(".add-button")
-            .addEventListener(
-                "click",
-                () => addToCart(product)
-            );
+            .addEventListener("click", (event) => {
+                addToCart(product, event.currentTarget);
+            });
 
         productList.appendChild(card);
     });
 }
 
-function addToCart(product) {
-    const existing = cart.find(item => item.maSanPham === product.maSanPham);
+
+function animateFlyToCart(product, sourceElement) {
+    const cartButton = document.getElementById("cartButton");
+    const countBadge = document.getElementById("cartCount");
+
+    const sourceImage = sourceElement
+        ?.closest(".product-card")
+        ?.querySelector(".product-image");
+
+    const sourceRect = (sourceImage || sourceElement).getBoundingClientRect();
+    const targetRect = cartButton.getBoundingClientRect();
+
+    // Tạo bản sao hình ảnh bay đến giỏ hàng
+    const flyingItem = document.createElement("div");
+    flyingItem.className = "flying-food";
+
+    const imageUrl = getImageUrl(product.anhSanPham);
+
+    if (imageUrl) {
+        const image = document.createElement("img");
+        image.src = imageUrl;
+        image.alt = "";
+        flyingItem.appendChild(image);
+    } else {
+        flyingItem.textContent = "🍢";
+    }
+
+    flyingItem.style.left = `${sourceRect.left}px`;
+    flyingItem.style.top = `${sourceRect.top}px`;
+    flyingItem.style.width = `${Math.min(sourceRect.width, 100)}px`;
+    flyingItem.style.height = `${Math.min(sourceRect.height, 100)}px`;
+
+    document.body.appendChild(flyingItem);
+
+    const startX = sourceRect.left + sourceRect.width / 2;
+    const startY = sourceRect.top + sourceRect.height / 2;
+    const endX = targetRect.left + targetRect.width / 2;
+    const endY = targetRect.top + targetRect.height / 2;
+
+    const deltaX = endX - startX;
+    const deltaY = endY - startY;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        flyingItem.remove();
+    } else {
+        const animation = flyingItem.animate(
+            [
+                {
+                    transform: "translate(0, 0) scale(1) rotate(0deg)",
+                    opacity: 1
+                },
+                {
+                    transform: `translate(${deltaX * 0.55}px, ${deltaY * 0.55 - 65}px) scale(0.65) rotate(12deg)`,
+                    opacity: 0.95,
+                    offset: 0.55
+                },
+                {
+                    transform: `translate(${deltaX}px, ${deltaY}px) scale(0.12) rotate(25deg)`,
+                    opacity: 0.15
+                }
+            ],
+            {
+                duration: 650,
+                easing: "cubic-bezier(0.22, 0.8, 0.25, 1)",
+                fill: "forwards"
+            }
+        );
+
+        animation.onfinish = () => flyingItem.remove();
+    }
+
+    // Hiệu ứng nhấn giỏ hàng và số lượng
+    cartButton.classList.remove("cart-bounce");
+    countBadge.classList.remove("count-pop");
+
+    // Buộc trình duyệt khởi động lại animation
+    void cartButton.offsetWidth;
+
+    cartButton.classList.add("cart-bounce");
+    countBadge.classList.add("count-pop");
+
+    setTimeout(() => {
+        cartButton.classList.remove("cart-bounce");
+        countBadge.classList.remove("count-pop");
+    }, 500);
+}
+
+function addToCart(product, sourceElement) {
+    // Hiệu ứng chạy độc lập với việc lưu dữ liệu
+    animateFlyToCart(product, sourceElement);
+
+    const existing = cart.find(
+        item => item.maSanPham === product.maSanPham
+    );
 
     if (existing) {
         existing.soLuong++;
@@ -196,7 +287,21 @@ function addToCart(product) {
     }
 
     saveCart();
+
+    // Phản hồi trực tiếp trên nút vừa nhấn
+    if (sourceElement) {
+        const originalText = sourceElement.textContent;
+
+        sourceElement.textContent = "✓ Đã thêm";
+        sourceElement.classList.add("added");
+
+        setTimeout(() => {
+            sourceElement.textContent = originalText;
+            sourceElement.classList.remove("added");
+        }, 700);
+    }
 }
+
 
 function changeQuantity(code, delta) {
     const item = cart.find(x => x.maSanPham === code);
