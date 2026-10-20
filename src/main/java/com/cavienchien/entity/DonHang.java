@@ -13,9 +13,6 @@ public class DonHang {
     @Column(name = "madonhang")
     private Integer maDonHang;
 
-    @Column(name = "manguoidung")
-    private Integer maNguoiDung;
-
     @Column(name = "maphien")
     private Integer maPhien;
 
@@ -62,10 +59,6 @@ public class DonHang {
         return maDonHang;
     }
 
-    public Integer getMaNguoiDung() {
-        return maNguoiDung;
-    }
-
     public Integer getMaPhien() {
         return maPhien;
     }
@@ -97,10 +90,6 @@ public class DonHang {
     // =========================
     // SETTER
     // =========================
-
-    public void setMaNguoiDung(Integer value) {
-        maNguoiDung = value;
-    }
 
     public void setMaPhien(Integer value) {
         maPhien = value;

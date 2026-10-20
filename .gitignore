@@ -1,0 +1,8 @@
+# Build Maven
+target/
+
+# Runtime logs
+*.log
+
+# Uploaded files
+uploads/

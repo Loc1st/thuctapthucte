@@ -22,8 +22,15 @@ const STATUS = {
     CANCELLED: 3
 };
 
+const TABLE_STATUS = {
+    EMPTY: 0,
+    BUSY: 1,
+    WAITING_PAYMENT: 2
+};
+
 let tables = [];
 let orders = [];
+let ordersLoadError = null;
 
 const statusText = {
     0: 'Chờ xác nhận',
@@ -44,34 +51,81 @@ function escapeHtml(value) {
         .replaceAll("'", '&#039;');
 }
 
+function getTableStatusMeta(value) {
+    const status = Number(value);
+
+    if (status === TABLE_STATUS.EMPTY) {
+        return {
+            text: '🟢 Trống',
+            className: 'empty'
+        };
+    }
+
+    if (status === TABLE_STATUS.BUSY) {
+        return {
+            text: '🔴 Có khách',
+            className: 'busy'
+        };
+    }
+
+    if (status === TABLE_STATUS.WAITING_PAYMENT) {
+        return {
+            text: '🟡 Chờ thanh toán',
+            className: 'waiting-payment'
+        };
+    }
+
+    return {
+        text: '⚪ Không xác định',
+        className: 'unknown'
+    };
+}
+
+function tableHasCurrentSession(table) {
+    const status = Number(table?.trangThai);
+
+    return status === TABLE_STATUS.BUSY ||
+        status === TABLE_STATUS.WAITING_PAYMENT;
+}
+
 async function loadData() {
     const message = document.getElementById('message');
 
     try {
         message.textContent = 'Đang tải danh sách bàn...';
 
-        const [banResponse, orderResponse] =
-            await Promise.all([
-                fetch(BAN_API),
-                fetch(ORDER_API)
-            ]);
+        const banResponse = await fetch(BAN_API);
 
         if (!banResponse.ok) {
             throw new Error('Không thể tải danh sách bàn.');
         }
 
-        if (!orderResponse.ok) {
-            throw new Error('Không thể tải danh sách đơn hàng.');
-        }
-
         tables = await banResponse.json();
-        orders = await orderResponse.json();
 
         message.classList.add('hidden');
 
         renderTables();
 
     } catch (error) {
+        message.textContent = error.message;
+        message.classList.remove('hidden');
+        return;
+    }
+
+    try {
+        const orderResponse = await fetch(ORDER_API);
+
+        if (!orderResponse.ok) {
+            throw new Error('Không thể tải danh sách đơn hàng.');
+        }
+
+        orders = await orderResponse.json();
+        ordersLoadError = null;
+
+    } catch (error) {
+        orders = [];
+        ordersLoadError = error;
+
         message.textContent = error.message;
         message.classList.remove('hidden');
     }
@@ -82,7 +136,7 @@ function renderTables() {
 
     root.innerHTML = tables.map(table => {
 
-        const busy = table.trangThai === 1;
+        const status = getTableStatusMeta(table.trangThai);
 
         return `
             <article
@@ -94,8 +148,8 @@ function renderTables() {
                     ${escapeHtml(table.tenBan)}
                 </div>
 
-                <span class="status ${busy ? 'busy' : 'empty'}">
-                    ${busy ? '🔴 Có khách' : '🟢 Trống'}
+                <span class="status ${status.className}">
+                    ${status.text}
                 </span>
 
             </article>
@@ -133,16 +187,14 @@ function openTable(maBan) {
     const status =
         document.getElementById('detailStatus');
 
+    const tableStatus =
+        getTableStatusMeta(table.trangThai);
+
     status.textContent =
-        table.trangThai === 1
-            ? '🔴 Có khách'
-            : '🟢 Trống';
+        tableStatus.text;
 
     status.className =
-        'status ' +
-        (table.trangThai === 1
-            ? 'busy'
-            : 'empty');
+        'status ' + tableStatus.className;
 
     renderOrders(maBan);
 }
@@ -154,6 +206,29 @@ function renderOrders(maBan) {
 
     const sessionSummary =
         document.getElementById('sessionSummary');
+
+    if (ordersLoadError) {
+
+        sessionSummary.classList.add('hidden');
+
+        const sessionActions =
+            document.getElementById(
+                'sessionActions'
+            );
+
+        if (sessionActions) {
+            sessionActions.classList.add('hidden');
+            sessionActions.innerHTML = '';
+        }
+
+        root.innerHTML = `
+        <div class="message">
+            ${escapeHtml(ordersLoadError.message)}
+        </div>
+    `;
+
+        return;
+    }
 
     const tableOrders =
         orders.filter(order => order.maBan === maBan);
@@ -192,7 +267,7 @@ function renderOrders(maBan) {
     );
 
     const tableIsBusy =
-        table && Number(table.trangThai) === 1;
+        tableHasCurrentSession(table);
 
     const validOrders = tableOrders.filter(
         order => order.maPhien != null
@@ -1311,21 +1386,16 @@ function refreshCurrentTable() {
     const status =
         document.getElementById('detailStatus');
 
-    const isBusy =
-        Number(table.trangThai) === 1;
+    const tableStatus =
+        getTableStatusMeta(table.trangThai);
 
     if (status) {
 
         status.textContent =
-            isBusy
-                ? '🔴 Có khách'
-                : '🟢 Trống';
+            tableStatus.text;
 
         status.className =
-            'status ' +
-            (isBusy
-                ? 'busy'
-                : 'empty');
+            'status ' + tableStatus.className;
     }
 
     // =========================
