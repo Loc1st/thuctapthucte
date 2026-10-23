@@ -47,7 +47,9 @@ public void addResourceHandlers(
                         "/staff/**"
                 )
                 .excludePathPatterns(
-                        "/api/auth/**"
+                        "/api/auth/**",
+                        "/admin/js/**",
+                        "/admin/css/**"
                 );
     }
 }
