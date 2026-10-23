@@ -631,3 +631,99 @@ body {
     }
 
 }
+
+
+/* ==============================
+   HIỆU ỨNG THÊM MÓN VÀO GIỎ
+   ============================== */
+
+.flying-food {
+    position: fixed;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    pointer-events: none;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.24);
+    will-change: transform, opacity;
+}
+
+.flying-food img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.flying-food:not(:has(img)) {
+    font-size: 34px;
+}
+
+.cart-button {
+    position: relative;
+    transition: background-color 0.2s ease;
+}
+
+.cart-button.cart-bounce {
+    animation: cartBounce 0.45s ease;
+    background: #ea580c;
+}
+
+#cartCount.count-pop {
+    animation: countPop 0.45s ease;
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.add-button {
+    transition:
+            background-color 0.2s ease,
+            transform 0.2s ease;
+}
+
+.add-button:active {
+    transform: scale(0.96);
+}
+
+.add-button.added {
+    background: #16a34a;
+    color: #fff;
+}
+
+@keyframes cartBounce {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    35% {
+        transform: scale(1.12) rotate(-3deg);
+    }
+
+    65% {
+        transform: scale(0.96) rotate(3deg);
+    }
+}
+
+@keyframes countPop {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    45% {
+        transform: scale(1.45);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cart-button.cart-bounce,
+    #cartCount.count-pop {
+        animation: none;
+    }
+
+    .add-button {
+        transition: none;
+    }
+}
+
